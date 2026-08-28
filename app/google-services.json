@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "525028381758",
+    "project_id": "bookquest-e4a90",
+    "storage_bucket": "bookquest-e4a90.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:525028381758:android:e14c41c5376e4fc663ad6f",
+        "android_client_info": {
+          "package_name": "com.poodicraft.bookquest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "525028381758-4snav0ldj25rovtb759ik66tu8n7tl63.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.poodicraft.bookquest",
+            "certificate_hash": "16d2e4c6c92d8c5e77fb1242c799d6596939321d"
+          }
+        },
+        {
+          "client_id": "525028381758-mnik580icdjepg7at3jor6rm1s5vugvs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfLILkA3J_2UaYZupApdd_HLbMLD_y2qQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "525028381758-mnik580icdjepg7at3jor6rm1s5vugvs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

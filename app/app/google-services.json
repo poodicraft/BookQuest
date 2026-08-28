@@ -1,0 +1,3 @@
+git add app/google-services.json
+git commit -m "Add Firebase configuration"
+git push

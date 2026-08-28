@@ -187,4 +187,36 @@
     <string name="finish_book_now">ضع علامة مكتمل</string>
     <string name="tap_to_hide">اضغط على الصفحة لإخفاء الأشرطة</string>
     <string name="jump_to">انتقال</string>
+
+    <string name="welcome_title">أهلا بك في رحلة الكتب</string>
+    <string name="welcome_body">سجل الدخول لحفظ نقاطك وسلسلتك وأوسمتك وتقدمك في القراءة. ويمكنك المتابعة بدون حساب — كل شيء يعمل بدون إنترنت.</string>
+    <string name="continue_google">تسجيل الدخول بحساب Google</string>
+    <string name="continue_apple">تسجيل الدخول بحساب Apple</string>
+    <string name="continue_email">المتابعة بالبريد الإلكتروني</string>
+    <string name="not_now">ليس الآن</string>
+    <string name="or_divider">أو</string>
+    <string name="email_label">البريد الإلكتروني</string>
+    <string name="password_label">كلمة المرور</string>
+    <string name="email_sign_in_title">تسجيل الدخول بالبريد</string>
+    <string name="email_sign_up_title">إنشاء حساب</string>
+    <string name="sign_in_action">تسجيل الدخول</string>
+    <string name="create_account_action">إنشاء حساب</string>
+    <string name="have_account">لديك حساب بالفعل? سجل الدخول</string>
+    <string name="need_account">جديد هنا? أنشئ حسابا</string>
+    <string name="forgot_password">نسيت كلمة المرور?</string>
+    <string name="reset_sent">تفقد بريدك، أرسلنا لك رابط إعادة التعيين</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
+    <string name="error_email_invalid">عنوان البريد لا يبدو صحيحا</string>
+    <string name="error_password_short">استخدم ستة أحرف على الأقل لكلمة المرور</string>
+    <string name="error_credentials">البريد أو كلمة المرور غير صحيحة</string>
+    <string name="error_no_account">لا يوجد حساب بهذا البريد</string>
+    <string name="error_email_in_use">هذا البريد له حساب بالفعل. سجل الدخول بدلا من ذلك.</string>
+    <string name="error_network">لا يوجد اتصال بالإنترنت</string>
+    <string name="error_provider_off">طريقة تسجيل الدخول هذه غير مفعلة في التطبيق بعد</string>
+    <string name="error_too_many">محاولات كثيرة. حاول مجددا بعد دقائق.</string>
+    <string name="error_cancelled">تم إلغاء تسجيل الدخول</string>
+    <string name="error_generic">حدث خطأ ما. حاول مرة أخرى.</string>
+    <string name="signing_in">جاري تسجيل الدخول…</string>
+    <string name="sign_in_title">تسجيل الدخول</string>
 </resources>

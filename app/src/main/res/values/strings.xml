@@ -187,4 +187,36 @@
     <string name="finish_book_now">סימון שהספר נקרא</string>
     <string name="tap_to_hide">הקשה על הדף מסתירה את הסרגלים</string>
     <string name="jump_to">קפיצה</string>
+
+    <string name="welcome_title">ברוכים הבאים למסע הספרים</string>
+    <string name="welcome_body">התחברות שומרת את הנקודות, הרצף, העיטורים וההתקדמות בקריאה. אפשר גם להמשיך בלי חשבון — הכול עובד גם בלי אינטרנט.</string>
+    <string name="continue_google">התחברות עם Google</string>
+    <string name="continue_apple">התחברות עם Apple</string>
+    <string name="continue_email">המשך עם אימייל</string>
+    <string name="not_now">לא עכשיו</string>
+    <string name="or_divider">או</string>
+    <string name="email_label">אימייל</string>
+    <string name="password_label">סיסמה</string>
+    <string name="email_sign_in_title">התחברות עם אימייל</string>
+    <string name="email_sign_up_title">יצירת חשבון</string>
+    <string name="sign_in_action">התחברות</string>
+    <string name="create_account_action">יצירת חשבון</string>
+    <string name="have_account">כבר יש לכם חשבון? התחברו</string>
+    <string name="need_account">חדשים כאן? צרו חשבון</string>
+    <string name="forgot_password">שכחתם סיסמה?</string>
+    <string name="reset_sent">שלחנו לכם קישור לאיפוס לתיבת המייל</string>
+    <string name="show_password">הצגת הסיסמה</string>
+    <string name="hide_password">הסתרת הסיסמה</string>
+    <string name="error_email_invalid">כתובת האימייל לא נראית תקינה</string>
+    <string name="error_password_short">הסיסמה צריכה להיות באורך שישה תווים לפחות</string>
+    <string name="error_credentials">האימייל או הסיסמה שגויים</string>
+    <string name="error_no_account">אין חשבון עם האימייל הזה</string>
+    <string name="error_email_in_use">כבר קיים חשבון עם האימייל הזה. אפשר פשוט להתחבר.</string>
+    <string name="error_network">אין חיבור לאינטרנט</string>
+    <string name="error_provider_off">שיטת ההתחברות הזו עדיין לא הופעלה באפליקציה</string>
+    <string name="error_too_many">יותר מדי ניסיונות. נסו שוב בעוד כמה דקות.</string>
+    <string name="error_cancelled">ההתחברות בוטלה</string>
+    <string name="error_generic">משהו השתבש. נסו שוב.</string>
+    <string name="signing_in">מתחברים…</string>
+    <string name="sign_in_title">התחברות</string>
 </resources>

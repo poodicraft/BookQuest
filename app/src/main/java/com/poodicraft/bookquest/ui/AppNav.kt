@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,8 +46,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.poodicraft.bookquest.R
+import com.poodicraft.bookquest.data.AccountState
 import com.poodicraft.bookquest.data.AppEvent
 import com.poodicraft.bookquest.data.Badges
+import com.poodicraft.bookquest.data.CloudSync
 import com.poodicraft.bookquest.data.LibraryRepository
 import com.poodicraft.bookquest.data.Prefs
 import com.poodicraft.bookquest.ui.components.AppBackground
@@ -88,8 +91,15 @@ fun BookQuestRoot(
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
 
+    val cloud = remember { CloudSync.get(context) }
+    val account by cloud.account.collectAsStateWithLifecycle()
+
     val books by repository.books.collectAsStateWithLifecycle()
     val profile by repository.profile.collectAsStateWithLifecycle()
+
+    // Signed out launches open on the welcome screen. "Not now" dismisses it for
+    // this run of the app, so it is not a wall you cannot get past.
+    var skippedSignIn by rememberSaveable { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     var confettiTrigger by remember { mutableIntStateOf(0) }
@@ -147,6 +157,14 @@ fun BookQuestRoot(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val onTab = TABS.any { it.route == currentRoute }
+
+    if (account is AccountState.SignedOut && !skippedSignIn) {
+        AuthScreen(
+            onSkip = { skippedSignIn = true },
+            onSignedIn = { skippedSignIn = false }
+        )
+        return
+    }
 
     AppBackground {
         Scaffold(

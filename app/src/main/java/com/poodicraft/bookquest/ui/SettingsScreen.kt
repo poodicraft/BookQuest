@@ -1,8 +1,5 @@
 package com.poodicraft.bookquest.ui
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -78,6 +75,15 @@ fun SettingsScreen(
     repository: LibraryRepository
 ) {
     var goal by remember { mutableFloatStateOf(profile.dailyGoal.toFloat()) }
+    var showSignIn by remember { mutableStateOf(false) }
+
+    if (showSignIn) {
+        AuthScreen(
+            onSkip = { showSignIn = false },
+            onSignedIn = { showSignIn = false }
+        )
+        return
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -94,7 +100,7 @@ fun SettingsScreen(
 
         item { SectionHeader(title = "☁️ " + stringResource(R.string.account)) }
 
-        item { AccountCard() }
+        item { AccountCard(onSignIn = { showSignIn = true }) }
 
         item { SectionHeader(title = "🌍 " + stringResource(R.string.language)) }
 
@@ -226,24 +232,14 @@ fun SettingsScreen(
     }
 }
 
-private fun Context.findActivity(): Activity? {
-    var current: Context = this
-    while (current is ContextWrapper) {
-        if (current is Activity) return current
-        current = current.baseContext
-    }
-    return null
-}
-
 @Composable
-private fun AccountCard() {
+private fun AccountCard(onSignIn: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val cloud = remember { CloudSync.get(context) }
     val account by cloud.account.collectAsStateWithLifecycle()
     val sync by cloud.sync.collectAsStateWithLifecycle()
     var busy by remember { mutableStateOf(false) }
-    var signInFailed by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -278,41 +274,15 @@ private fun AccountCard() {
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (signInFailed) {
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = stringResource(R.string.sign_in_failed),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
                     Spacer(Modifier.height(14.dp))
                     Button(
-                        onClick = {
-                            val activity = context.findActivity() ?: return@Button
-                            signInFailed = false
-                            busy = true
-                            scope.launch {
-                                val result = cloud.signIn(activity)
-                                signInFailed = result.isFailure
-                                busy = false
-                            }
-                        },
-                        enabled = !busy,
+                        onClick = onSignIn,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
                         shape = RoundedCornerShape(18.dp)
                     ) {
-                        if (busy) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("G  " + stringResource(R.string.sign_in_google))
-                        }
+                        Text(stringResource(R.string.sign_in_title))
                     }
                 }
 
@@ -346,6 +316,19 @@ private fun AccountCard() {
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            val providerLabel = when (state.provider) {
+                                "google.com" -> "Google"
+                                "apple.com" -> "Apple"
+                                "password" -> stringResource(R.string.email_label)
+                                else -> ""
+                            }
+                            if (providerLabel.isNotEmpty()) {
+                                Text(
+                                    text = providerLabel,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
 

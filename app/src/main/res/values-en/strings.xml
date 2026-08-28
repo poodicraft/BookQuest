@@ -187,4 +187,36 @@
     <string name="finish_book_now">Mark it finished</string>
     <string name="tap_to_hide">Tap the page to hide the bars</string>
     <string name="jump_to">Jump</string>
+
+    <string name="welcome_title">Welcome to BookQuest</string>
+    <string name="welcome_body">Sign in to keep your XP, streak, badges and reading progress safe. You can also carry on without an account — everything works offline.</string>
+    <string name="continue_google">Sign in with Google</string>
+    <string name="continue_apple">Sign in with Apple</string>
+    <string name="continue_email">Continue with email</string>
+    <string name="not_now">Not now</string>
+    <string name="or_divider">or</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="email_sign_in_title">Sign in with email</string>
+    <string name="email_sign_up_title">Create an account</string>
+    <string name="sign_in_action">Sign in</string>
+    <string name="create_account_action">Create account</string>
+    <string name="have_account">Already have an account? Sign in</string>
+    <string name="need_account">New here? Create an account</string>
+    <string name="forgot_password">Forgot your password?</string>
+    <string name="reset_sent">Check your inbox for a reset link</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="error_email_invalid">That email address does not look right</string>
+    <string name="error_password_short">Use at least six characters for the password</string>
+    <string name="error_credentials">Wrong email or password</string>
+    <string name="error_no_account">No account exists for that email</string>
+    <string name="error_email_in_use">That email already has an account. Sign in instead.</string>
+    <string name="error_network">No internet connection</string>
+    <string name="error_provider_off">That sign in method is not switched on for this app yet</string>
+    <string name="error_too_many">Too many attempts. Try again in a few minutes.</string>
+    <string name="error_cancelled">Sign in was cancelled</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="sign_in_title">Sign in</string>
 </resources>

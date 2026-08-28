@@ -36,6 +36,7 @@ always tell which build is on the phone.
 
 | Version | What changed |
 | --- | --- |
+| 1.4 (5) | Teacher accounts, classes with join codes, set books and quizzes, typed quiz answers |
 | 1.3 (4) | Welcome screen on launch, branded Google button, email sign in |
 | 1.2 (3) | Firebase configuration added, so Google sign in and cloud backup are live |
 | 1.1 (2) | Google sign in and cloud backup, reworked reading screen, XP exploit fixes |

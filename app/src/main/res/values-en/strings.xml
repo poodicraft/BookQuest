@@ -218,4 +218,80 @@
     <string name="error_generic">Something went wrong. Please try again.</string>
     <string name="signing_in">Signing in…</string>
     <string name="sign_in_title">Sign in</string>
+
+    <string name="nav_class">Class</string>
+    <string name="role_question">How will you use BookQuest?</string>
+    <string name="role_student">I am a student</string>
+    <string name="role_student_desc">Join your class with a code, read what your teacher sets and take quizzes.</string>
+    <string name="role_teacher">I am a teacher</string>
+    <string name="role_teacher_desc">Open classes, invite students with a code, set books and write quizzes.</string>
+    <string name="your_name">Your name</string>
+    <string name="school_name">School</string>
+    <string name="subject_taught">Subject you teach</string>
+    <string name="save_profile">Save and continue</string>
+    <string name="edit_profile">Edit your details</string>
+    <string name="teacher_label">Teacher</string>
+    <string name="sign_in_required">Sign in to use classes</string>
+    <string name="sign_in_required_hint">Classes are shared between a teacher and their students, so they need an account.</string>
+
+    <string name="my_classes">Your classes</string>
+    <string name="new_class">New class</string>
+    <string name="class_name">Class name</string>
+    <string name="create_class">Create class</string>
+    <string name="class_code">Class code</string>
+    <string name="copy_code">Copy code</string>
+    <string name="code_copied">Code copied</string>
+    <string name="share_code_hint">Give this code to your students. They enter it once to join.</string>
+    <string name="no_classes_teacher">No classes yet</string>
+    <string name="no_classes_teacher_hint">Open a class, then hand out its code so your students can join.</string>
+
+    <string name="join_class">Join a class</string>
+    <string name="join_code_label">Class code</string>
+    <string name="join_action">Join</string>
+    <string name="joined_class">You joined %1$s</string>
+    <string name="bad_code">No class has that code</string>
+    <string name="no_class_yet">You are not in a class yet</string>
+    <string name="no_class_hint">Ask your teacher for the class code and enter it here.</string>
+
+    <string name="roster">Students</string>
+    <string name="students_count">%1$d students</string>
+    <string name="no_students">Nobody has joined yet</string>
+    <string name="assignments">Set work</string>
+    <string name="assignments_count">%1$d items</string>
+    <string name="no_assignments">Nothing set yet</string>
+    <string name="assign_book">Set a book</string>
+    <string name="new_quiz">Write a quiz</string>
+    <string name="from_teacher">From your teacher</string>
+    <string name="add_to_library">Add to my library</string>
+    <string name="added_to_library">Added to your library</string>
+    <string name="book_note">Note for the class</string>
+    <string name="attach_text">Attach a text file</string>
+    <string name="attached_ready">Attached, %1$d characters</string>
+    <string name="attach_hint">Attach a TXT or MD file and your students get the whole book. Without one they get the title and add the file themselves.</string>
+    <string name="attach_too_big">That file is too large to send to the class</string>
+
+    <string name="quiz_title_label">Quiz name</string>
+    <string name="question_label">Question %1$d</string>
+    <string name="answer_label">Answer</string>
+    <string name="alt_answer_label">Also accept (optional)</string>
+    <string name="add_question">Add another question</string>
+    <string name="save_quiz">Give the quiz to the class</string>
+    <string name="need_question">Write at least one question with an answer</string>
+    <string name="questions_count">%1$d questions</string>
+    <string name="delete_item">Remove</string>
+
+    <string name="results_title">Results</string>
+    <string name="no_results">No one has finished a quiz yet</string>
+    <string name="result_line">%1$s out of %2$s</string>
+
+    <string name="type_your_answer">Type your answer</string>
+    <string name="check_answer">Check</string>
+    <string name="answer_correct">Correct!</string>
+    <string name="answer_wrong">Not quite</string>
+    <string name="correct_answer_was">The answer was: %1$s</string>
+    <string name="next_question">Next</string>
+    <string name="see_result">See how you did</string>
+    <string name="saving">Saving…</string>
+    <string name="try_again">Try again</string>
+    <string name="something_failed">That did not work. Check your connection and try again.</string>
 </resources>

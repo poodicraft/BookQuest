@@ -218,4 +218,80 @@
     <string name="error_generic">משהו השתבש. נסו שוב.</string>
     <string name="signing_in">מתחברים…</string>
     <string name="sign_in_title">התחברות</string>
+
+    <string name="nav_class">כיתה</string>
+    <string name="role_question">איך תשתמשו במסע הספרים?</string>
+    <string name="role_student">אני תלמיד/ה</string>
+    <string name="role_student_desc">מצטרפים לכיתה עם קוד, קוראים את מה שהמורה נותנת ופותרים חידונים.</string>
+    <string name="role_teacher">אני מורה</string>
+    <string name="role_teacher_desc">פותחים כיתות, מזמינים תלמידים עם קוד, נותנים ספרים וכותבים חידונים.</string>
+    <string name="your_name">השם שלך</string>
+    <string name="school_name">בית ספר</string>
+    <string name="subject_taught">המקצוע שאת/ה מלמד/ת</string>
+    <string name="save_profile">שמירה והמשך</string>
+    <string name="edit_profile">עריכת הפרטים</string>
+    <string name="teacher_label">מורה</string>
+    <string name="sign_in_required">כדי להשתמש בכיתות צריך להתחבר</string>
+    <string name="sign_in_required_hint">כיתה משותפת למורה ולתלמידים, ולכן היא דורשת חשבון.</string>
+
+    <string name="my_classes">הכיתות שלך</string>
+    <string name="new_class">כיתה חדשה</string>
+    <string name="class_name">שם הכיתה</string>
+    <string name="create_class">יצירת כיתה</string>
+    <string name="class_code">קוד הכיתה</string>
+    <string name="copy_code">העתקת הקוד</string>
+    <string name="code_copied">הקוד הועתק</string>
+    <string name="share_code_hint">מוסרים את הקוד לתלמידים. הם מזינים אותו פעם אחת ומצטרפים.</string>
+    <string name="no_classes_teacher">אין עדיין כיתות</string>
+    <string name="no_classes_teacher_hint">פותחים כיתה ומוסרים את הקוד שלה כדי שהתלמידים יצטרפו.</string>
+
+    <string name="join_class">הצטרפות לכיתה</string>
+    <string name="join_code_label">קוד הכיתה</string>
+    <string name="join_action">הצטרפות</string>
+    <string name="joined_class">הצטרפת אל %1$s</string>
+    <string name="bad_code">אין כיתה עם הקוד הזה</string>
+    <string name="no_class_yet">עוד לא הצטרפת לכיתה</string>
+    <string name="no_class_hint">מבקשים מהמורה את קוד הכיתה ומזינים אותו כאן.</string>
+
+    <string name="roster">תלמידים</string>
+    <string name="students_count">%1$d תלמידים</string>
+    <string name="no_students">עוד אף אחד לא הצטרף</string>
+    <string name="assignments">משימות</string>
+    <string name="assignments_count">%1$d פריטים</string>
+    <string name="no_assignments">עוד לא ניתנו משימות</string>
+    <string name="assign_book">נתינת ספר</string>
+    <string name="new_quiz">כתיבת חידון</string>
+    <string name="from_teacher">מהמורה שלך</string>
+    <string name="add_to_library">הוספה לספרייה שלי</string>
+    <string name="added_to_library">נוסף לספרייה שלך</string>
+    <string name="book_note">הערה לכיתה</string>
+    <string name="attach_text">צירוף קובץ טקסט</string>
+    <string name="attached_ready">צורף, %1$d תווים</string>
+    <string name="attach_hint">מצרפים קובץ TXT או MD והתלמידים מקבלים את הספר המלא. בלי קובץ הם מקבלים את השם ומוסיפים אותו בעצמם.</string>
+    <string name="attach_too_big">הקובץ גדול מדי לשליחה לכיתה</string>
+
+    <string name="quiz_title_label">שם החידון</string>
+    <string name="question_label">שאלה %1$d</string>
+    <string name="answer_label">תשובה</string>
+    <string name="alt_answer_label">לקבל גם (לא חובה)</string>
+    <string name="add_question">הוספת שאלה</string>
+    <string name="save_quiz">נתינת החידון לכיתה</string>
+    <string name="need_question">צריך לפחות שאלה אחת עם תשובה</string>
+    <string name="questions_count">%1$d שאלות</string>
+    <string name="delete_item">הסרה</string>
+
+    <string name="results_title">תוצאות</string>
+    <string name="no_results">אף אחד עוד לא סיים חידון</string>
+    <string name="result_line">%1$s מתוך %2$s</string>
+
+    <string name="type_your_answer">כתבו את התשובה</string>
+    <string name="check_answer">בדיקה</string>
+    <string name="answer_correct">נכון!</string>
+    <string name="answer_wrong">לא בדיוק</string>
+    <string name="correct_answer_was">התשובה היא: %1$s</string>
+    <string name="next_question">הבא</string>
+    <string name="see_result">לראות את התוצאה</string>
+    <string name="saving">שומרים…</string>
+    <string name="try_again">לנסות שוב</string>
+    <string name="something_failed">זה לא עבד. בדקו את החיבור ונסו שוב.</string>
 </resources>

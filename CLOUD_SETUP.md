@@ -124,6 +124,64 @@ is there. So: turn everything on first, download the file last.
 | "That sign in method is not switched on for this app yet" | The provider behind the button you pressed is disabled in *Authentication → Sign-in method*. |
 | "Wrong email or password" on an account you just made | The account was created against a different Firebase project. Delete the app data and sign in again. |
 
+## Classes need one more rule change
+
+Version 1.4 added teacher accounts and classes, which means documents that a
+teacher and their students share. The rules from step 4 only cover each
+student's own document, so **classes will fail with a permission error until
+you replace them**.
+
+Go back to *Firestore Database → Rules*, paste this in place of what is there,
+and publish:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /classes/{classId} {
+      // Anyone signed in can look a class up, which is how joining by code works.
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.teacherUid == request.auth.uid;
+      allow update, delete: if request.auth != null
+                    && resource.data.teacherUid == request.auth.uid;
+
+      match /members/{memberId} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null && request.auth.uid == memberId;
+        allow delete: if request.auth != null
+                      && (request.auth.uid == memberId
+                          || get(/databases/$(database)/documents/classes/$(classId))
+                               .data.teacherUid == request.auth.uid);
+      }
+
+      match /assignments/{assignmentId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null
+                     && get(/databases/$(database)/documents/classes/$(classId))
+                          .data.teacherUid == request.auth.uid;
+      }
+
+      match /results/{resultId} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null
+                     && request.resource.data.studentUid == request.auth.uid;
+      }
+    }
+  }
+}
+```
+
+What this allows: a student can only ever write their own profile, their own
+roster entry and their own quiz result; only the teacher who created a class
+can set work in it or change it. Class names and codes are readable by anyone
+signed in, which is what makes a join code work at all.
+
 ## What actually gets backed up
 
 One Firestore document per student, at `users/{uid}`, holding a single JSON

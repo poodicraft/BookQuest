@@ -498,6 +498,42 @@ class LibraryRepository private constructor(private val appContext: Context) {
     private fun dayKey(date: Date): String =
         SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
 
+    /**
+     * Adds a book a teacher handed to the class. The text arrives inline with the
+     * assignment, so it lands as a real, readable file rather than a placeholder.
+     */
+    fun addTextBook(title: String, author: String, subject: Subject, text: String) {
+        scope.launch {
+            try {
+                val id = UUID.randomUUID().toString()
+                val target = File(booksDir, "$id.txt")
+                target.writeText(text)
+                val book = Book(
+                    id = id,
+                    title = title.trim().ifEmpty { "?" },
+                    author = author.trim(),
+                    subjectId = subject.id,
+                    format = BookFormat.TXT,
+                    fileName = target.name,
+                    addedAt = System.currentTimeMillis(),
+                    coverSeed = title.hashCode()
+                )
+                _books.value = listOf(restoreFromSnapshot(book)) + _books.value
+                awardXp(5)
+                refreshBadges()
+                persist()
+            } catch (e: Exception) {
+                _events.tryEmit(AppEvent.Failed("assigned-book"))
+            }
+        }
+    }
+
+    /** True when a book with this title is already on the shelf. */
+    fun hasBookTitled(title: String): Boolean {
+        val wanted = title.trim().lowercase()
+        return _books.value.any { it.title.trim().lowercase() == wanted }
+    }
+
     // ------------------------------------------------------------ cloud sync
 
     private val snapshotFile: File get() = File(appContext.filesDir, "cloud_snapshot.json")

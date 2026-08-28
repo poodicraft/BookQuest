@@ -1,19 +1,21 @@
 package com.poodicraft.bookquest.ui
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
@@ -24,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,21 +43,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.poodicraft.bookquest.R
+import com.poodicraft.bookquest.data.AnswerCheck
 import com.poodicraft.bookquest.data.Book
-import com.poodicraft.bookquest.data.Flashcard
 import com.poodicraft.bookquest.data.LibraryRepository
+import com.poodicraft.bookquest.data.QuizQuestion
 import com.poodicraft.bookquest.ui.components.ConfettiBurst
 import com.poodicraft.bookquest.ui.components.EmptyState
 import com.poodicraft.bookquest.ui.theme.Brand
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** The personal flashcard quiz, built from the cards on one book. */
 @Composable
 fun QuizScreen(
     book: Book?,
@@ -73,19 +78,49 @@ fun QuizScreen(
         return
     }
 
-    var round by remember { mutableIntStateOf(0) }
-    val deck: List<Flashcard> = remember(book.id, book.cards.size, round) { book.cards.shuffled() }
+    val questions = remember(book.id, book.cards.size) {
+        book.cards.map { QuizQuestion(prompt = it.front, answer = it.back) }.shuffled()
+    }
 
+    TypedQuizRunner(
+        title = book.title,
+        questions = questions,
+        onBack = onBack,
+        onFinish = { correct, total -> repository.recordQuiz(correct, total) }
+    )
+}
+
+/**
+ * Asks each question and marks what the student types. There is deliberately no
+ * "I knew it" button: writing the answer down is the part that proves you
+ * recalled it, and self marking quietly turns a test back into a review.
+ *
+ * Marking is forgiving rather than exact — see [AnswerCheck].
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TypedQuizRunner(
+    title: String,
+    questions: List<QuizQuestion>,
+    onBack: () -> Unit,
+    onFinish: (Int, Int) -> Unit,
+    footer: (@Composable () -> Unit)? = null
+) {
+    var round by remember { mutableIntStateOf(0) }
     var index by remember(round) { mutableIntStateOf(0) }
-    var revealed by remember(round) { mutableStateOf(false) }
+    var typed by remember(round) { mutableStateOf("") }
+    var judged by remember(round) { mutableStateOf<Boolean?>(null) }
     var correct by remember(round) { mutableIntStateOf(0) }
     var finished by remember(round) { mutableStateOf(false) }
+    var confetti by remember { mutableIntStateOf(0) }
+
+    val keyboard = LocalSoftwareKeyboardController.current
 
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.quiz)) },
+                title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -104,28 +139,40 @@ fun QuizScreen(
                 .padding(padding)
         ) {
             if (finished) {
-                QuizResult(
+                QuizResultView(
                     correct = correct,
-                    total = deck.size,
+                    total = questions.size,
                     onPlayAgain = { round += 1 },
-                    onBack = onBack
+                    onBack = onBack,
+                    footer = footer
                 )
             } else {
-                val card = deck[index.coerceIn(0, deck.size - 1)]
+                val question = questions[index.coerceIn(0, questions.size - 1)]
+
+                fun mark() {
+                    if (judged != null || typed.isBlank()) return
+                    val ok = AnswerCheck.isCorrect(typed, question.answer, question.alternatives)
+                    judged = ok
+                    if (ok) correct += 1
+                    keyboard?.hide()
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .imePadding()
                         .padding(horizontal = 22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = stringResource(R.string.quiz_progress, index + 1, deck.size),
+                        text = stringResource(R.string.quiz_progress, index + 1, questions.size),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(8.dp))
                     LinearProgressIndicator(
-                        progress = { (index.toFloat() / deck.size).coerceIn(0f, 1f) },
+                        progress = { (index.toFloat() / questions.size).coerceIn(0f, 1f) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp)
@@ -134,153 +181,146 @@ fun QuizScreen(
                         trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         strokeCap = StrokeCap.Round
                     )
-                    Spacer(Modifier.height(24.dp))
 
-                    FlipCard(
-                        front = card.front,
-                        back = card.back.ifBlank { "…" },
-                        revealed = revealed,
-                        onClick = { revealed = !revealed },
+                    Spacer(Modifier.height(22.dp))
+
+                    val verdict = judged
+                    val cardColors = when (verdict) {
+                        true -> listOf(Brand.Mint, Brand.Sky)
+                        false -> listOf(Brand.Coral, Brand.Sun)
+                        else -> listOf(Brand.Violet, Brand.Bubblegum)
+                    }
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp)
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(28.dp))
+                            .background(Brush.linearGradient(cardColors))
+                            .padding(26.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = when (verdict) {
+                                    true -> "✅"
+                                    false -> "📘"
+                                    else -> "❓"
+                                },
+                                fontSize = 30.sp
+                            )
+                            Spacer(Modifier.height(14.dp))
+                            Text(
+                                text = question.prompt,
+                                color = Color.White,
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 29.sp
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(20.dp))
+
+                    OutlinedTextField(
+                        value = typed,
+                        onValueChange = { if (judged == null) typed = it },
+                        label = { Text(stringResource(R.string.type_your_answer)) },
+                        enabled = judged == null,
+                        shape = RoundedCornerShape(16.dp),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { mark() }),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(16.dp))
 
-                    if (!revealed) {
+                    if (verdict == null) {
                         Button(
-                            onClick = { revealed = true },
+                            onClick = { mark() },
+                            enabled = typed.isNotBlank(),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(54.dp),
                             shape = RoundedCornerShape(18.dp)
                         ) {
-                            Text(stringResource(R.string.quiz_show_answer))
+                            Text(stringResource(R.string.check_answer))
                         }
                     } else {
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedButton(
-                                onClick = {
-                                    if (index + 1 >= deck.size) {
-                                        repository.recordQuiz(correct, deck.size)
-                                        finished = true
-                                    } else {
-                                        index += 1
-                                        revealed = false
-                                    }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(54.dp),
-                                shape = RoundedCornerShape(18.dp)
-                            ) {
-                                Text(stringResource(R.string.quiz_missed))
-                            }
-                            Button(
-                                onClick = {
-                                    val nextCorrect = correct + 1
-                                    correct = nextCorrect
-                                    if (index + 1 >= deck.size) {
-                                        repository.recordQuiz(nextCorrect, deck.size)
-                                        finished = true
-                                    } else {
-                                        index += 1
-                                        revealed = false
-                                    }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(54.dp),
-                                shape = RoundedCornerShape(18.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Brand.Mint,
-                                    contentColor = Color.White
+                        val tint by animateColorAsState(
+                            targetValue = if (verdict) Brand.Mint else Brand.Coral,
+                            label = "verdict"
+                        )
+                        Text(
+                            text = stringResource(
+                                if (verdict) R.string.answer_correct else R.string.answer_wrong
+                            ),
+                            color = tint,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        if (!verdict) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = stringResource(R.string.correct_answer_was, question.answer),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Spacer(Modifier.height(14.dp))
+                        Button(
+                            onClick = {
+                                if (index + 1 >= questions.size) {
+                                    onFinish(correct, questions.size)
+                                    if (correct == questions.size) confetti += 1
+                                    finished = true
+                                } else {
+                                    index += 1
+                                    typed = ""
+                                    judged = null
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(54.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (index + 1 >= questions.size) R.string.see_result
+                                    else R.string.next_question
                                 )
-                            ) {
-                                Text(stringResource(R.string.quiz_knew_it))
-                            }
+                            )
                         }
                     }
+
+                    Spacer(Modifier.height(30.dp))
                 }
             }
+
+            ConfettiBurst(trigger = confetti)
         }
     }
 }
 
 @Composable
-private fun FlipCard(
-    front: String,
-    back: String,
-    revealed: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val rotation by animateFloatAsState(
-        targetValue = if (revealed) 180f else 0f,
-        animationSpec = tween(durationMillis = 450),
-        label = "flip"
-    )
-    Box(
-        modifier = modifier
-            .graphicsLayer {
-                rotationY = rotation
-                cameraDistance = 14f * density
-            }
-            .clip(RoundedCornerShape(28.dp))
-            .background(
-                Brush.linearGradient(
-                    if (rotation <= 90f) listOf(Brand.Violet, Brand.Bubblegum)
-                    else listOf(Brand.Mint, Brand.Sky)
-                )
-            )
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        if (rotation <= 90f) {
-            CardFace(text = front, caption = "❓")
-        } else {
-            Box(modifier = Modifier.graphicsLayer { rotationY = 180f }) {
-                CardFace(text = back, caption = "💡")
-            }
-        }
-    }
-}
-
-@Composable
-private fun CardFace(text: String, caption: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(26.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = caption, fontSize = 30.sp)
-        Spacer(Modifier.height(14.dp))
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            lineHeight = 30.sp
-        )
-    }
-}
-
-@Composable
-private fun QuizResult(
+private fun QuizResultView(
     correct: Int,
     total: Int,
     onPlayAgain: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    footer: (@Composable () -> Unit)?
 ) {
     val perfect = correct == total
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -299,6 +339,10 @@ private fun QuizResult(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (footer != null) {
+                Spacer(Modifier.height(14.dp))
+                footer()
+            }
             Spacer(Modifier.height(28.dp))
             Button(
                 onClick = onPlayAgain,

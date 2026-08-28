@@ -10,6 +10,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -59,6 +60,9 @@ import kotlinx.coroutines.launch
 object Routes {
     const val HOME = "home"
     const val LIBRARY = "library"
+    const val CLASS = "class"
+    const val CLASS_DETAIL = "classDetail"
+    const val CLASS_QUIZ = "classQuiz"
     const val STATS = "stats"
     const val SETTINGS = "settings"
     const val BOOK = "book"
@@ -74,6 +78,7 @@ private data class TabItem(val route: String, val labelRes: Int, val icon: Image
 private val TABS = listOf(
     TabItem(Routes.HOME, R.string.nav_home, Icons.Rounded.Home),
     TabItem(Routes.LIBRARY, R.string.nav_library, Icons.Rounded.AutoStories),
+    TabItem(Routes.CLASS, R.string.nav_class, Icons.Rounded.School),
     TabItem(Routes.STATS, R.string.nav_stats, Icons.Rounded.EmojiEvents),
     TabItem(Routes.SETTINGS, R.string.nav_settings, Icons.Rounded.Settings)
 )
@@ -207,6 +212,32 @@ fun BookQuestRoot(
                             books = books,
                             onOpenBook = { id -> navController.navigate("${Routes.BOOK}/$id") },
                             onImport = openImporter
+                        )
+                    }
+                    composable(Routes.CLASS) {
+                        ClassScreen(
+                            onOpenClass = { id ->
+                                navController.navigate("${Routes.CLASS_DETAIL}/$id")
+                            },
+                            onRunQuiz = { classId, assignmentId ->
+                                navController.navigate(
+                                    "${Routes.CLASS_QUIZ}/$classId/$assignmentId"
+                                )
+                            },
+                            onSignIn = { skippedSignIn = false }
+                        )
+                    }
+                    composable("${Routes.CLASS_DETAIL}/{classId}") { entry ->
+                        ClassDetailScreen(
+                            classId = entry.arguments?.getString("classId"),
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable("${Routes.CLASS_QUIZ}/{classId}/{assignmentId}") { entry ->
+                        ClassQuizScreen(
+                            classId = entry.arguments?.getString("classId"),
+                            assignmentId = entry.arguments?.getString("assignmentId"),
+                            onBack = { navController.popBackStack() }
                         )
                     }
                     composable(Routes.STATS) {

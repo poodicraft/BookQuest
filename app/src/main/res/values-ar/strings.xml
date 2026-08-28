@@ -218,4 +218,80 @@
     <string name="error_generic">حدث خطأ ما. حاول مرة أخرى.</string>
     <string name="signing_in">جاري تسجيل الدخول…</string>
     <string name="sign_in_title">تسجيل الدخول</string>
+
+    <string name="nav_class">الصف</string>
+    <string name="role_question">كيف ستستخدم رحلة الكتب?</string>
+    <string name="role_student">أنا طالب</string>
+    <string name="role_student_desc">انضم إلى صفك برمز، اقرأ ما يحدده معلمك وحل الاختبارات.</string>
+    <string name="role_teacher">أنا معلم</string>
+    <string name="role_teacher_desc">افتح صفوفا، وادع الطلاب برمز، وحدد الكتب واكتب الاختبارات.</string>
+    <string name="your_name">اسمك</string>
+    <string name="school_name">المدرسة</string>
+    <string name="subject_taught">المادة التي تدرسها</string>
+    <string name="save_profile">حفظ ومتابعة</string>
+    <string name="edit_profile">تعديل بياناتك</string>
+    <string name="teacher_label">المعلم</string>
+    <string name="sign_in_required">سجل الدخول لاستخدام الصفوف</string>
+    <string name="sign_in_required_hint">الصف مشترك بين المعلم وطلابه، لذلك يحتاج إلى حساب.</string>
+
+    <string name="my_classes">صفوفك</string>
+    <string name="new_class">صف جديد</string>
+    <string name="class_name">اسم الصف</string>
+    <string name="create_class">إنشاء صف</string>
+    <string name="class_code">رمز الصف</string>
+    <string name="copy_code">نسخ الرمز</string>
+    <string name="code_copied">تم نسخ الرمز</string>
+    <string name="share_code_hint">أعط هذا الرمز لطلابك. يدخلونه مرة واحدة للانضمام.</string>
+    <string name="no_classes_teacher">لا صفوف بعد</string>
+    <string name="no_classes_teacher_hint">افتح صفا ثم وزع رمزه لينضم طلابك.</string>
+
+    <string name="join_class">الانضمام إلى صف</string>
+    <string name="join_code_label">رمز الصف</string>
+    <string name="join_action">انضمام</string>
+    <string name="joined_class">انضممت إلى %1$s</string>
+    <string name="bad_code">لا يوجد صف بهذا الرمز</string>
+    <string name="no_class_yet">لم تنضم إلى صف بعد</string>
+    <string name="no_class_hint">اطلب رمز الصف من معلمك وأدخله هنا.</string>
+
+    <string name="roster">الطلاب</string>
+    <string name="students_count">%1$d طلاب</string>
+    <string name="no_students">لم ينضم أحد بعد</string>
+    <string name="assignments">المهام</string>
+    <string name="assignments_count">%1$d عناصر</string>
+    <string name="no_assignments">لم تحدد مهام بعد</string>
+    <string name="assign_book">تحديد كتاب</string>
+    <string name="new_quiz">كتابة اختبار</string>
+    <string name="from_teacher">من معلمك</string>
+    <string name="add_to_library">أضف إلى مكتبتي</string>
+    <string name="added_to_library">أضيف إلى مكتبتك</string>
+    <string name="book_note">ملاحظة للصف</string>
+    <string name="attach_text">أرفق ملفا نصيا</string>
+    <string name="attached_ready">أرفق، %1$d حرفا</string>
+    <string name="attach_hint">أرفق ملف TXT أو MD ليحصل طلابك على الكتاب كاملا. وبدونه يحصلون على العنوان ويضيفون الملف بأنفسهم.</string>
+    <string name="attach_too_big">هذا الملف أكبر من أن يرسل إلى الصف</string>
+
+    <string name="quiz_title_label">اسم الاختبار</string>
+    <string name="question_label">السؤال %1$d</string>
+    <string name="answer_label">الجواب</string>
+    <string name="alt_answer_label">اقبل أيضا (اختياري)</string>
+    <string name="add_question">أضف سؤالا آخر</string>
+    <string name="save_quiz">أعط الاختبار للصف</string>
+    <string name="need_question">اكتب سؤالا واحدا على الأقل مع جوابه</string>
+    <string name="questions_count">%1$d أسئلة</string>
+    <string name="delete_item">إزالة</string>
+
+    <string name="results_title">النتائج</string>
+    <string name="no_results">لم ينه أحد اختبارا بعد</string>
+    <string name="result_line">%1$s من %2$s</string>
+
+    <string name="type_your_answer">اكتب جوابك</string>
+    <string name="check_answer">تحقق</string>
+    <string name="answer_correct">صحيح!</string>
+    <string name="answer_wrong">ليس تماما</string>
+    <string name="correct_answer_was">الجواب هو: %1$s</string>
+    <string name="next_question">التالي</string>
+    <string name="see_result">شاهد نتيجتك</string>
+    <string name="saving">جاري الحفظ…</string>
+    <string name="try_again">حاول مجددا</string>
+    <string name="something_failed">لم ينجح ذلك. تحقق من اتصالك وحاول مجددا.</string>
 </resources>

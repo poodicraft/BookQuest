@@ -191,19 +191,6 @@ fun AuthScreen(
                         if (activity != null) attempt { cloud.signIn(activity) }
                     }
                 )
-                Spacer(Modifier.height(12.dp))
-                BrandButton(
-                    iconRes = R.drawable.ic_apple,
-                    label = stringResource(R.string.continue_apple),
-                    container = Color(0xFF000000),
-                    content = Color.White,
-                    borderColor = null,
-                    busy = busy,
-                    onClick = {
-                        val activity = context.findActivity()
-                        if (activity != null) attempt { cloud.signInWithApple(activity) }
-                    }
-                )
                 Spacer(Modifier.height(18.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     HorizontalDivider(modifier = Modifier.weight(1f))
@@ -412,7 +399,7 @@ fun AuthScreen(
 
 /**
  * One provider button. The label stays optically centred while the mark sits at
- * the leading edge, which is how the Google and Apple buttons are specified.
+ * the leading edge, which is how the Google button is specified.
  */
 @Composable
 private fun BrandButton(

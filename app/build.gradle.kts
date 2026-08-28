@@ -101,8 +101,6 @@ dependencies {
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    // Sign in with Apple runs as a browser handshake through Custom Tabs.
-    implementation("androidx.browser:browser:1.8.0")
 
     // Account and cloud backup of reading progress.
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))

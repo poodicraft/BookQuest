@@ -9,7 +9,6 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.OAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -168,33 +167,6 @@ class CloudSync private constructor(
         } catch (e: Exception) {
             lastCredentialError = e
             null
-        }
-    }
-
-    /**
-     * Signs in with Apple. On Android this is a browser based OAuth handshake that
-     * Firebase drives, so it needs the Apple provider configured in the Firebase
-     * console; without that it fails with [ProviderNotEnabled].
-     */
-    suspend fun signInWithApple(activity: Activity): Result<Unit> {
-        val firebaseAuth = auth ?: return Result.failure(CloudNotConfigured())
-        return try {
-            val provider = OAuthProvider.newBuilder("apple.com")
-                .setScopes(listOf("email", "name"))
-                .build()
-
-            // A handshake interrupted by the browser resumes here rather than
-            // starting a second one.
-            val pending = firebaseAuth.pendingAuthResult
-            if (pending != null) {
-                pending.await()
-            } else {
-                firebaseAuth.startActivityForSignInWithProvider(activity, provider).await()
-            }
-            refresh()
-            syncNow()
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 

@@ -65,15 +65,9 @@ is there. So: turn everything on first, download the file last.
    project support email, and save. This is the step that creates the web
    client the app needs.
 
-3b. **Turn on the other sign in methods.** On the same *Sign-in method* tab:
-
-   - **Email/Password** — click it, toggle *Enable*, save. That is all email sign
-     in needs, and it works immediately.
-   - **Apple** — this one is not free. Sign in with Apple requires a paid Apple
-     Developer Program membership (currently 99 USD a year) so you can create a
-     Services ID, a key and a team ID to paste into Firebase. Until that is
-     filled in, the Apple button in the app is visible but reports that the
-     method is not switched on yet. Everything else works without it.
+3b. **Turn on email sign in.** On the same *Sign-in method* tab, click
+   **Email/Password**, toggle *Enable* and save. That is all it needs, and it
+   takes effect immediately with no rebuild.
 
 4. **Create the database.** Search for `Firestore` the same way and open
    *Firestore Database → Create database*. Pick a location near your school
@@ -127,7 +121,7 @@ is there. So: turn everything on first, download the file last.
 | The account chooser opens, then nothing happens | The SHA-1 registered in Firebase does not match the APK's signing key. Check the fingerprint under *Settings → General → Your apps*. |
 | "Backup failed: PERMISSION_DENIED" | The Firestore rules from step 4 were not published. |
 | "Backup failed" mentioning an unavailable database | Firestore was never created. Do step 4. |
-| "That sign in method is not switched on for this app yet" | The provider behind the button you pressed is disabled in *Authentication → Sign-in method*. For Apple this also means the Apple developer details were never filled in. |
+| "That sign in method is not switched on for this app yet" | The provider behind the button you pressed is disabled in *Authentication → Sign-in method*. |
 | "Wrong email or password" on an account you just made | The account was created against a different Firebase project. Delete the app data and sign in again. |
 
 ## What actually gets backed up

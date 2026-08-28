@@ -191,7 +191,6 @@
     <string name="welcome_title">Welcome to BookQuest</string>
     <string name="welcome_body">Sign in to keep your XP, streak, badges and reading progress safe. You can also carry on without an account — everything works offline.</string>
     <string name="continue_google">Sign in with Google</string>
-    <string name="continue_apple">Sign in with Apple</string>
     <string name="continue_email">Continue with email</string>
     <string name="not_now">Not now</string>
     <string name="or_divider">or</string>

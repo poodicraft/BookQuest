@@ -318,7 +318,6 @@ private fun AccountCard(onSignIn: () -> Unit) {
                             )
                             val providerLabel = when (state.provider) {
                                 "google.com" -> "Google"
-                                "apple.com" -> "Apple"
                                 "password" -> stringResource(R.string.email_label)
                                 else -> ""
                             }

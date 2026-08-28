@@ -191,7 +191,6 @@
     <string name="welcome_title">أهلا بك في رحلة الكتب</string>
     <string name="welcome_body">سجل الدخول لحفظ نقاطك وسلسلتك وأوسمتك وتقدمك في القراءة. ويمكنك المتابعة بدون حساب — كل شيء يعمل بدون إنترنت.</string>
     <string name="continue_google">تسجيل الدخول بحساب Google</string>
-    <string name="continue_apple">تسجيل الدخول بحساب Apple</string>
     <string name="continue_email">المتابعة بالبريد الإلكتروني</string>
     <string name="not_now">ليس الآن</string>
     <string name="or_divider">أو</string>

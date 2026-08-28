@@ -1,5 +1,6 @@
 package com.poodicraft.bookquest.data
 
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -8,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
@@ -94,10 +97,22 @@ data class QuizResult(
  * Reads and writes go straight to Firestore rather than through a local cache,
  * because a classroom is inherently shared state and staleness would show.
  */
-class Classroom private constructor() {
+class Classroom private constructor(private val appContext: Context) {
 
-    private val _profile = MutableStateFlow(SchoolProfile())
+    private val cache = appContext
+        .getSharedPreferences("bookquest_classroom", Context.MODE_PRIVATE)
+
+    private val _profile = MutableStateFlow(readCachedProfile())
     val profile: StateFlow<SchoolProfile> = _profile.asStateFlow()
+
+    /**
+     * The classes you belong to. Held here rather than in a screen so that
+     * walking off to the library and back cannot make a class disappear.
+     */
+    private val _classes = MutableStateFlow(readCachedClasses())
+    val classes: StateFlow<List<SchoolClass>> = _classes.asStateFlow()
+
+    private var loadedOnce = false
 
     private val auth: FirebaseAuth?
         get() = try {
@@ -117,30 +132,67 @@ class Classroom private constructor() {
 
     // ---------------------------------------------------------------- profile
 
+    /**
+     * Refreshes the profile and class list, once per sign in unless [force]d.
+     *
+     * A failure here leaves whatever was already known in place. Wiping the
+     * cached profile on a dropped request is what used to throw people back to
+     * the role picker and empty their class list mid session.
+     */
+    suspend fun ensureLoaded(force: Boolean = false) {
+        if (loadedOnce && !force) return
+        loadedOnce = true
+        loadProfile()
+        refreshClasses()
+    }
+
     suspend fun loadProfile(): SchoolProfile = withContext(Dispatchers.IO) {
         val id = uid
         val store = db
-        if (id == null || store == null) {
-            _profile.value = SchoolProfile()
-            return@withContext _profile.value
-        }
+        if (id == null || store == null) return@withContext _profile.value
         try {
             val snapshot = store.collection("users").document(id).get().await()
+            if (!snapshot.exists()) return@withContext _profile.value
             val ids = snapshot.get("classIds") as? List<*>
+            val remoteRole = UserRole.fromId(snapshot.getString("role"))
+            val current = _profile.value
             val loaded = SchoolProfile(
-                role = UserRole.fromId(snapshot.getString("role")),
+                // A blank remote role means the document predates the role, so
+                // keep whatever this device already knows rather than resetting.
+                role = if (remoteRole == UserRole.UNKNOWN) current.role else remoteRole,
                 displayName = snapshot.getString("name")
-                    ?: auth?.currentUser?.displayName.orEmpty(),
-                school = snapshot.getString("school").orEmpty(),
-                subject = snapshot.getString("subject").orEmpty(),
-                classIds = ids?.mapNotNull { it as? String } ?: emptyList()
+                    ?: current.displayName.ifBlank { auth?.currentUser?.displayName.orEmpty() },
+                school = snapshot.getString("school") ?: current.school,
+                subject = snapshot.getString("subject") ?: current.subject,
+                classIds = (ids?.mapNotNull { it as? String } ?: emptyList())
+                    .plus(current.classIds)
+                    .distinct()
             )
             _profile.value = loaded
+            writeCachedProfile(loaded)
             loaded
         } catch (e: Exception) {
-            _profile.value = SchoolProfile()
             _profile.value
         }
+    }
+
+    /** Reloads the class list, keeping the cached one if the request fails. */
+    suspend fun refreshClasses(): List<SchoolClass> {
+        val result = myClasses()
+        val loaded = result.getOrNull()
+        if (loaded != null) {
+            _classes.value = loaded
+            writeCachedClasses(loaded)
+        }
+        return _classes.value
+    }
+
+    /** Forgets everything about this account, for sign out. */
+    fun clear() {
+        loadedOnce = false
+        _profile.value = SchoolProfile()
+        _classes.value = emptyList()
+        cache.edit().clear().apply()
     }
 
     suspend fun saveProfile(
@@ -161,12 +213,14 @@ class Classroom private constructor() {
                 ),
                 com.google.firebase.firestore.SetOptions.merge()
             ).await()
-            _profile.value = _profile.value.copy(
+            val updated = _profile.value.copy(
                 role = role,
                 displayName = displayName.trim(),
                 school = school.trim(),
                 subject = subject.trim()
             )
+            _profile.value = updated
+            writeCachedProfile(updated)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -226,6 +280,8 @@ class Classroom private constructor() {
                         "createdAt" to created.createdAt
                     )
                 ).await()
+                _classes.value = listOf(created) + _classes.value
+                writeCachedClasses(_classes.value)
                 Result.success(created)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -268,9 +324,15 @@ class Classroom private constructor() {
                 com.google.firebase.firestore.SetOptions.merge()
             ).await()
 
-            _profile.value = _profile.value.copy(
+            val updated = _profile.value.copy(
                 classIds = (_profile.value.classIds + target.id).distinct()
             )
+            _profile.value = updated
+            writeCachedProfile(updated)
+            if (_classes.value.none { it.id == target.id }) {
+                _classes.value = _classes.value + target
+                writeCachedClasses(_classes.value)
+            }
             Result.success(target)
         } catch (e: Exception) {
             Result.failure(e)
@@ -501,6 +563,66 @@ class Classroom private constructor() {
         return (1..6).map { alphabet[Random.nextInt(alphabet.length)] }.joinToString("")
     }
 
+    // ------------------------------------------------------------ local cache
+
+    private fun readCachedProfile(): SchoolProfile = SchoolProfile(
+        role = UserRole.fromId(cache.getString("role", null)),
+        displayName = cache.getString("name", "").orEmpty(),
+        school = cache.getString("school", "").orEmpty(),
+        subject = cache.getString("subject", "").orEmpty(),
+        classIds = cache.getString("classIds", "").orEmpty()
+            .split(",").filter { it.isNotBlank() }
+    )
+
+    private fun writeCachedProfile(value: SchoolProfile) {
+        cache.edit()
+            .putString("role", value.role.id)
+            .putString("name", value.displayName)
+            .putString("school", value.school)
+            .putString("subject", value.subject)
+            .putString("classIds", value.classIds.joinToString(","))
+            .apply()
+    }
+
+    private fun readCachedClasses(): List<SchoolClass> = try {
+        val array = JSONArray(cache.getString("classes", "[]"))
+        (0 until array.length()).mapNotNull { index ->
+            val item = array.optJSONObject(index) ?: return@mapNotNull null
+            SchoolClass(
+                id = item.optString("id"),
+                name = item.optString("name"),
+                school = item.optString("school"),
+                teacherUid = item.optString("teacherUid"),
+                teacherName = item.optString("teacherName"),
+                joinCode = item.optString("joinCode"),
+                createdAt = item.optLong("createdAt")
+            )
+        }.filter { it.id.isNotEmpty() }
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    private fun writeCachedClasses(value: List<SchoolClass>) {
+        try {
+            val array = JSONArray()
+            value.forEach { item ->
+                array.put(
+                    JSONObject()
+                        .put("id", item.id)
+                        .put("name", item.name)
+                        .put("school", item.school)
+                        .put("teacherUid", item.teacherUid)
+                        .put("teacherName", item.teacherName)
+                        .put("joinCode", item.joinCode)
+                        .put("createdAt", item.createdAt)
+                )
+            }
+            cache.edit().putString("classes", array.toString()).apply()
+        } catch (e: Exception) {
+            // The in memory list is still correct; only the offline copy is lost.
+        }
+    }
+
     class NotSignedIn : Exception("No account is signed in")
     class BadCode : Exception("No class has that code")
     class EmptyName : Exception("A name is required")
@@ -509,8 +631,8 @@ class Classroom private constructor() {
         @Volatile
         private var instance: Classroom? = null
 
-        fun get(): Classroom = instance ?: synchronized(this) {
-            instance ?: Classroom().also { instance = it }
+        fun get(context: Context): Classroom = instance ?: synchronized(this) {
+            instance ?: Classroom(context.applicationContext).also { instance = it }
         }
     }
 }

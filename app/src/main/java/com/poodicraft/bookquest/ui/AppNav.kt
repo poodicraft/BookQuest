@@ -50,7 +50,9 @@ import com.poodicraft.bookquest.R
 import com.poodicraft.bookquest.data.AccountState
 import com.poodicraft.bookquest.data.AppEvent
 import com.poodicraft.bookquest.data.Badges
+import com.poodicraft.bookquest.data.Classroom
 import com.poodicraft.bookquest.data.CloudSync
+import com.poodicraft.bookquest.data.UserRole
 import com.poodicraft.bookquest.data.LibraryRepository
 import com.poodicraft.bookquest.data.Prefs
 import com.poodicraft.bookquest.ui.components.AppBackground
@@ -97,7 +99,15 @@ fun BookQuestRoot(
     val scope = rememberCoroutineScope()
 
     val cloud = remember { CloudSync.get(context) }
+    val classroom = remember { Classroom.get(context) }
     val account by cloud.account.collectAsStateWithLifecycle()
+    val schoolProfile by classroom.profile.collectAsStateWithLifecycle()
+
+    // Pull the account's role and classes once per sign in, so no screen has to
+    // fetch them on the way in and none of them can be missing on the way back.
+    LaunchedEffect(account) {
+        if (account is AccountState.SignedIn) classroom.ensureLoaded()
+    }
 
     val books by repository.books.collectAsStateWithLifecycle()
     val profile by repository.profile.collectAsStateWithLifecycle()
@@ -168,6 +178,16 @@ fun BookQuestRoot(
             onSkip = { skippedSignIn = true },
             onSignedIn = { skippedSignIn = false }
         )
+        return
+    }
+
+    // Straight after signing in, once: teacher or student, and who you are.
+    var roleAsked by rememberSaveable { mutableStateOf(false) }
+    if (account is AccountState.SignedIn &&
+        schoolProfile.role == UserRole.UNKNOWN &&
+        !roleAsked
+    ) {
+        RoleScreen(onDone = { roleAsked = true })
         return
     }
 

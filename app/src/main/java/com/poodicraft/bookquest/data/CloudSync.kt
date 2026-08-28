@@ -211,6 +211,11 @@ class CloudSync private constructor(
         } catch (e: Exception) {
             // Nothing else to do; the state refresh below still runs.
         }
+        try {
+            Classroom.get(appContext).clear()
+        } catch (e: Exception) {
+            // Signing out still succeeds even if the cache will not clear.
+        }
         _sync.value = SyncState.Idle
         refresh()
     }

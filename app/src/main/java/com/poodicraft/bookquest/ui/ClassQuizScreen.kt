@@ -35,7 +35,7 @@ fun ClassQuizScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val classroom = remember { Classroom.get() }
+    val classroom = remember { Classroom.get(context) }
     val library = remember { LibraryRepository.get(context) }
     val scope = rememberCoroutineScope()
 

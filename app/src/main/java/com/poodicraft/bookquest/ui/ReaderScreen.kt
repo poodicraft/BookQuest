@@ -94,6 +94,33 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** Where the reader has got to, and how far through that is. */
+private class ReadingPosition(val fraction: Float, val firstIndex: Int) {
+    override fun equals(other: Any?): Boolean =
+        other is ReadingPosition && other.fraction == fraction && other.firstIndex == firstIndex
+
+    override fun hashCode(): Int = fraction.hashCode() * 31 + firstIndex
+}
+
+/**
+ * Progress is measured from the *last* line on screen, not the first.
+ *
+ * Measuring the first line can never reach the end of a book: when you are
+ * looking at the final page, the top line is still a screenful short of it, so
+ * the bar used to stop somewhere in the eighties and stay there. Anything that
+ * can no longer scroll is simply finished.
+ */
+private fun readingPosition(state: LazyListState): ReadingPosition {
+    val info = state.layoutInfo
+    val total = info.totalItemsCount
+    val first = state.firstVisibleItemIndex
+    if (total <= 0) return ReadingPosition(0f, 0)
+    if (!state.canScrollForward) return ReadingPosition(1f, first)
+    val last = info.visibleItemsInfo.lastOrNull()?.index ?: first
+    val fraction = ((last + 1).toFloat() / total).coerceIn(0f, 1f)
+    return ReadingPosition(fraction, first)
+}
+
 private data class PageStyle(
     val background: Color,
     val text: Color,
@@ -600,9 +627,8 @@ private fun PlainTextReader(
         if (target > 0) listState.scrollToItem(target)
     }
     LaunchedEffect(listState, content.size) {
-        snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
-            val fraction = if (content.size <= 1) 1f else index.toFloat() / (content.size - 1)
-            onProgress(fraction.coerceIn(0f, 1f), index)
+        snapshotFlow { readingPosition(listState) }.collect { position ->
+            onProgress(position.fraction, position.firstIndex)
         }
     }
 
@@ -732,7 +758,12 @@ private fun WebReader(
                 setOnScrollChangeListener { _, _, scrollY, _, _ ->
                     try {
                         val total = contentHeight * scale - height
-                        if (total > 0f) onProgress((scrollY / total).coerceIn(0f, 1f))
+                        if (total > 0f) {
+                            // Browsers leave a pixel or two at the bottom; that is
+                            // still the end of the book as far as a reader is concerned.
+                            val raw = scrollY / total
+                            onProgress(if (raw >= 0.995f) 1f else raw.coerceIn(0f, 1f))
+                        }
                     } catch (e: Exception) {
                         // Progress stays where it was.
                     }
@@ -833,9 +864,8 @@ private fun PdfReader(
         if (target > 0) listState.scrollToItem(target)
     }
     LaunchedEffect(listState, pageCount) {
-        snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
-            val fraction = if (pageCount <= 1) 1f else index.toFloat() / (pageCount - 1)
-            onProgress(fraction.coerceIn(0f, 1f), index)
+        snapshotFlow { readingPosition(listState) }.collect { position ->
+            onProgress(position.fraction, position.firstIndex)
         }
     }
 

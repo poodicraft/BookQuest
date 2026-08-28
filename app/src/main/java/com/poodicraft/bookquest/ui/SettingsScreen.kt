@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -76,11 +77,20 @@ fun SettingsScreen(
 ) {
     var goal by remember { mutableFloatStateOf(profile.dailyGoal.toFloat()) }
     var showSignIn by remember { mutableStateOf(false) }
+    var showRole by remember { mutableStateOf(false) }
 
     if (showSignIn) {
         AuthScreen(
             onSkip = { showSignIn = false },
             onSignedIn = { showSignIn = false }
+        )
+        return
+    }
+
+    if (showRole) {
+        RoleScreen(
+            onDone = { showRole = false },
+            onSkip = { showRole = false }
         )
         return
     }
@@ -100,7 +110,12 @@ fun SettingsScreen(
 
         item { SectionHeader(title = "☁️ " + stringResource(R.string.account)) }
 
-        item { AccountCard(onSignIn = { showSignIn = true }) }
+        item {
+            AccountCard(
+                onSignIn = { showSignIn = true },
+                onEditDetails = { showRole = true }
+            )
+        }
 
         item { SectionHeader(title = "🌍 " + stringResource(R.string.language)) }
 
@@ -233,7 +248,7 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun AccountCard(onSignIn: () -> Unit) {
+private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val cloud = remember { CloudSync.get(context) }
@@ -347,7 +362,12 @@ private fun AccountCard(onSignIn: () -> Unit) {
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(6.dp))
+                    TextButton(onClick = onEditDetails) {
+                        Text(stringResource(R.string.edit_profile))
+                    }
+
+                    Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedButton(
                             onClick = { cloud.signOut() },

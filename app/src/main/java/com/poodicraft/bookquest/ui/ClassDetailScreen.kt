@@ -97,7 +97,8 @@ fun ClassDetailScreen(classId: String?, onBack: () -> Unit) {
         return
     }
 
-    val classroom = remember { Classroom.get() }
+    val context = LocalContext.current
+    val classroom = remember { Classroom.get(context) }
     val scope = rememberCoroutineScope()
     var mode by remember { mutableStateOf(DetailMode.OVERVIEW) }
     var refreshKey by remember { mutableIntStateOf(0) }

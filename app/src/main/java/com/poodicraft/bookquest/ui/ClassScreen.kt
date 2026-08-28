@@ -76,7 +76,7 @@ fun ClassScreen(
 ) {
     val context = LocalContext.current
     val cloud = remember { CloudSync.get(context) }
-    val classroom = remember { Classroom.get() }
+    val classroom = remember { Classroom.get(context) }
     val library = remember { LibraryRepository.get(context) }
     val scope = rememberCoroutineScope()
 
@@ -84,8 +84,8 @@ fun ClassScreen(
     val profile by classroom.profile.collectAsStateWithLifecycle()
 
     var refreshKey by remember { mutableIntStateOf(0) }
-    var classes by remember { mutableStateOf<List<SchoolClass>>(emptyList()) }
-    var loading by remember { mutableStateOf(true) }
+    val classes by classroom.classes.collectAsStateWithLifecycle()
+    var loading by remember { mutableStateOf(classes.isEmpty()) }
 
     val signedIn = account is AccountState.SignedIn
 
@@ -94,9 +94,9 @@ fun ClassScreen(
             loading = false
             return@LaunchedEffect
         }
-        loading = true
-        classroom.loadProfile()
-        classes = classroom.myClasses().getOrElse { emptyList() }
+        // Only block on the spinner when there is nothing cached to show.
+        loading = classes.isEmpty()
+        classroom.ensureLoaded(force = refreshKey > 0)
         loading = false
     }
 
@@ -122,11 +122,7 @@ fun ClassScreen(
     }
 
     if (profile.role == UserRole.UNKNOWN) {
-        RoleSetup(
-            classroom = classroom,
-            initialName = (account as? AccountState.SignedIn)?.name.orEmpty(),
-            onDone = { refreshKey += 1 }
-        )
+        RoleScreen(onDone = { refreshKey += 1 })
         return
     }
 
@@ -146,162 +142,6 @@ fun ClassScreen(
             onRunQuiz = onRunQuiz,
             onJoined = { refreshKey += 1 }
         )
-    }
-}
-
-// --------------------------------------------------------------------- role
-
-@Composable
-private fun RoleSetup(
-    classroom: Classroom,
-    initialName: String,
-    onDone: () -> Unit
-) {
-    var role by remember { mutableStateOf(UserRole.STUDENT) }
-    var name by remember { mutableStateOf(initialName) }
-    var school by remember { mutableStateOf("") }
-    var subject by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
-    var failed by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.role_question),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-        item {
-            RoleCard(
-                emoji = "🎒",
-                title = stringResource(R.string.role_student),
-                body = stringResource(R.string.role_student_desc),
-                selected = role == UserRole.STUDENT,
-                onClick = { role = UserRole.STUDENT }
-            )
-        }
-        item {
-            RoleCard(
-                emoji = "🍎",
-                title = stringResource(R.string.role_teacher),
-                body = stringResource(R.string.role_teacher_desc),
-                selected = role == UserRole.TEACHER,
-                onClick = { role = UserRole.TEACHER }
-            )
-        }
-        item {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(stringResource(R.string.your_name)) },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        item {
-            OutlinedTextField(
-                value = school,
-                onValueChange = { school = it },
-                label = { Text(stringResource(R.string.school_name)) },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        if (role == UserRole.TEACHER) {
-            item {
-                OutlinedTextField(
-                    value = subject,
-                    onValueChange = { subject = it },
-                    label = { Text(stringResource(R.string.subject_taught)) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-        if (failed) {
-            item {
-                Text(
-                    text = stringResource(R.string.something_failed),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-        item {
-            Button(
-                onClick = {
-                    if (name.isBlank() || busy) return@Button
-                    busy = true
-                    failed = false
-                    scope.launch {
-                        val result = classroom.saveProfile(role, name, school, subject)
-                        busy = false
-                        if (result.isSuccess) onDone() else failed = true
-                    }
-                },
-                enabled = name.isNotBlank() && !busy,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(18.dp)
-            ) {
-                Text(stringResource(R.string.save_profile))
-            }
-        }
-    }
-}
-
-@Composable
-private fun RoleCard(
-    emoji: String,
-    title: String,
-    body: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = emoji, fontSize = 30.sp)
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = body,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (selected) {
-                Text(text = "✓", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            }
-        }
     }
 }
 

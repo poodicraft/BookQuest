@@ -36,6 +36,7 @@ always tell which build is on the phone.
 
 | Version | What changed |
 | --- | --- |
+| 1.6 (7) | Backup no longer erases your role and classes, real file type detection, progress starts at 0 |
 | 1.5 (6) | Role chosen at sign in, classes no longer drop out mid session, reading progress reaches 100% |
 | 1.4 (5) | Teacher accounts, classes with join codes, set books and quizzes, typed quiz answers |
 | 1.3 (4) | Welcome screen on launch, branded Google button, email sign in |

@@ -10,6 +10,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -239,11 +240,14 @@ class CloudSync private constructor(
                     repository.mergeSnapshot(payload)
                 }
                 val merged = repository.exportSnapshot()
+                // Merge, never replace: the same document also holds the role,
+                // name, school and class ids, and a plain set() wipes them.
                 document.set(
                     mapOf(
                         "payload" to merged,
                         "updatedAt" to System.currentTimeMillis()
-                    )
+                    ),
+                    SetOptions.merge()
                 ).await()
             }
             _sync.value = SyncState.Done(System.currentTimeMillis())

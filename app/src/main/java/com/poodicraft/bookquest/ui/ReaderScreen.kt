@@ -103,21 +103,31 @@ private class ReadingPosition(val fraction: Float, val firstIndex: Int) {
 }
 
 /**
- * Progress is measured from the *last* line on screen, not the first.
+ * How far through the book the reader is, as a fraction of the scrolling it can
+ * actually do rather than of the raw item count.
  *
- * Measuring the first line can never reach the end of a book: when you are
- * looking at the final page, the top line is still a screenful short of it, so
- * the bar used to stop somewhere in the eighties and stay there. Anything that
- * can no longer scroll is simply finished.
+ * Both of the obvious formulas are wrong at one end. Dividing the first visible
+ * line by the total never reaches 1, because the top line on the final page is
+ * still a screenful short of the end. Dividing the last visible line by the
+ * total never starts at 0, because a screenful is already showing before you
+ * scroll at all — a short book opened at page one would claim a third read.
+ *
+ * Measuring against the scrollable range instead pins both ends: nothing
+ * scrolled is 0, and nothing left to scroll is 1.
  */
 private fun readingPosition(state: LazyListState): ReadingPosition {
     val info = state.layoutInfo
     val total = info.totalItemsCount
     val first = state.firstVisibleItemIndex
     if (total <= 0) return ReadingPosition(0f, 0)
+    // Everything already fits, or there is nothing below: the book is read.
     if (!state.canScrollForward) return ReadingPosition(1f, first)
-    val last = info.visibleItemsInfo.lastOrNull()?.index ?: first
-    val fraction = ((last + 1).toFloat() / total).coerceIn(0f, 1f)
+    if (first <= 0 && state.firstVisibleItemScrollOffset == 0) {
+        return ReadingPosition(0f, 0)
+    }
+    val onScreen = info.visibleItemsInfo.size.coerceAtLeast(1)
+    val scrollable = (total - onScreen).coerceAtLeast(1)
+    val fraction = (first.toFloat() / scrollable).coerceIn(0f, 1f)
     return ReadingPosition(fraction, first)
 }
 

@@ -216,15 +216,33 @@ class LibraryRepository private constructor(private val appContext: Context) {
     private suspend fun importSingle(uri: Uri): Book? = withContext(Dispatchers.IO) {
         try {
             val display = displayName(uri)
-            val extension = display.substringAfterLast('.', "").lowercase()
-            val format = BookFormat.fromExtension(extension)
-            if (format == BookFormat.UNKNOWN) return@withContext null
+            val mime = try {
+                appContext.contentResolver.getType(uri)
+            } catch (e: Exception) {
+                null
+            }
 
             val id = UUID.randomUUID().toString()
-            val target = File(booksDir, "$id.${format.id}")
+            var format = BookFormat.UNKNOWN
+            var target: File? = null
+
             appContext.contentResolver.openInputStream(uri)?.use { input ->
-                target.outputStream().use { output -> input.copyTo(output) }
+                // Sniff the front of the file, then write it back out ahead of
+                // the rest so the stream only has to be read once.
+                val head = ByteArray(FileType.HEAD_BYTES)
+                val headLength = maxOf(input.read(head), 0)
+                format = FileType.detect(display, mime, head.copyOf(headLength))
+                if (format != BookFormat.UNKNOWN) {
+                    val file = File(booksDir, "$id.${format.id}")
+                    file.outputStream().use { output ->
+                        output.write(head, 0, headLength)
+                        input.copyTo(output)
+                    }
+                    target = file
+                }
             } ?: return@withContext null
+
+            val written = target ?: return@withContext null
 
             val title = prettyTitle(display)
             val book = Book(
@@ -233,7 +251,7 @@ class LibraryRepository private constructor(private val appContext: Context) {
                 author = "",
                 subjectId = guessSubject(title).id,
                 format = format,
-                fileName = target.name,
+                fileName = written.name,
                 addedAt = System.currentTimeMillis(),
                 coverSeed = title.hashCode()
             )
@@ -514,6 +532,42 @@ class LibraryRepository private constructor(private val appContext: Context) {
                     author = author.trim(),
                     subjectId = subject.id,
                     format = BookFormat.TXT,
+                    fileName = target.name,
+                    addedAt = System.currentTimeMillis(),
+                    coverSeed = title.hashCode()
+                )
+                _books.value = listOf(restoreFromSnapshot(book)) + _books.value
+                awardXp(5)
+                refreshBadges()
+                persist()
+            } catch (e: Exception) {
+                _events.tryEmit(AppEvent.Failed("assigned-book"))
+            }
+        }
+    }
+
+    /**
+     * Adds a book a teacher sent as raw bytes — a PDF, an EPUB, anything the
+     * readers understand — rather than as plain text.
+     */
+    fun addBinaryBook(
+        title: String,
+        author: String,
+        subject: Subject,
+        format: BookFormat,
+        bytes: ByteArray
+    ) {
+        scope.launch {
+            try {
+                val id = UUID.randomUUID().toString()
+                val target = File(booksDir, "$id.${format.id}")
+                target.writeBytes(bytes)
+                val book = Book(
+                    id = id,
+                    title = title.trim().ifEmpty { "?" },
+                    author = author.trim(),
+                    subjectId = subject.id,
+                    format = format,
                     fileName = target.name,
                     addedAt = System.currentTimeMillis(),
                     coverSeed = title.hashCode()

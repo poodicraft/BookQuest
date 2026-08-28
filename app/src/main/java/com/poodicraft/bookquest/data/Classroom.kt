@@ -66,6 +66,10 @@ data class Assignment(
     val note: String = "",
     /** Inline text for small text books, so students get the whole thing at once. */
     val content: String = "",
+    /** Base64 of a small binary book — a PDF, an EPUB — sent whole. */
+    val contentBase64: String = "",
+    /** Which format [contentBase64] holds, as a [BookFormat] id. */
+    val contentFormat: String = "",
     val questions: List<QuizQuestion> = emptyList(),
     val createdAt: Long = 0L
 ) {
@@ -77,6 +81,12 @@ data class Assignment(
 
         /** Firestore documents cap at 1 MiB, so inline book text is kept well under it. */
         const val MAX_INLINE_CHARS = 400_000
+
+        /**
+         * Base64 grows a file by a third, so this is the largest binary book
+         * that still leaves room inside a single Firestore document.
+         */
+        const val MAX_INLINE_BYTES = 550_000
     }
 }
 
@@ -233,18 +243,27 @@ class Classroom private constructor(private val appContext: Context) {
         val id = uid ?: return@withContext Result.failure(NotSignedIn())
         val store = db ?: return@withContext Result.failure(NotSignedIn())
         try {
-            val list = if (_profile.value.role == UserRole.TEACHER) {
+            // Ask both ways and take the union. Keying this off the cached role
+            // meant a momentarily unknown role hid a teacher's own classes.
+            val taught = try {
                 store.collection("classes")
                     .whereEqualTo("teacherUid", id)
                     .get().await()
                     .documents.mapNotNull { classFrom(it.id, it.data) }
-            } else {
-                val ids = _profile.value.classIds
-                ids.mapNotNull { classId ->
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            val joined = _profile.value.classIds.mapNotNull { classId ->
+                try {
                     val doc = store.collection("classes").document(classId).get().await()
                     classFrom(doc.id, doc.data)
+                } catch (e: Exception) {
+                    null
                 }
             }
+
+            val list = (taught + joined).distinctBy { it.id }
             Result.success(list.sortedByDescending { it.createdAt })
         } catch (e: Exception) {
             Result.failure(e)
@@ -379,7 +398,9 @@ class Classroom private constructor(private val appContext: Context) {
         author: String,
         subject: Subject,
         note: String,
-        content: String
+        content: String,
+        contentBase64: String = "",
+        contentFormat: String = ""
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val store = db ?: return@withContext Result.failure(NotSignedIn())
         if (title.isBlank()) return@withContext Result.failure(EmptyName())
@@ -394,6 +415,8 @@ class Classroom private constructor(private val appContext: Context) {
                         "subject" to subject.id,
                         "note" to note.trim(),
                         "content" to content.take(Assignment.MAX_INLINE_CHARS),
+                        "contentBase64" to contentBase64,
+                        "contentFormat" to contentFormat,
                         "createdAt" to System.currentTimeMillis()
                     )
                 ).await()
@@ -539,6 +562,8 @@ class Classroom private constructor(private val appContext: Context) {
             subjectId = doc.getString("subject") ?: Subject.GENERAL.id,
             note = doc.getString("note").orEmpty(),
             content = doc.getString("content").orEmpty(),
+            contentBase64 = doc.getString("contentBase64").orEmpty(),
+            contentFormat = doc.getString("contentFormat").orEmpty(),
             questions = questions,
             createdAt = doc.getLong("createdAt") ?: 0L
         )

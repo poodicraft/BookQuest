@@ -265,10 +265,10 @@
     <string name="add_to_library">أضف إلى مكتبتي</string>
     <string name="added_to_library">أضيف إلى مكتبتك</string>
     <string name="book_note">ملاحظة للصف</string>
-    <string name="attach_text">أرفق ملفا نصيا</string>
-    <string name="attached_ready">أرفق، %1$d حرفا</string>
-    <string name="attach_hint">أرفق ملف TXT أو MD ليحصل طلابك على الكتاب كاملا. وبدونه يحصلون على العنوان ويضيفون الملف بأنفسهم.</string>
-    <string name="attach_too_big">هذا الملف أكبر من أن يرسل إلى الصف</string>
+    <string name="attach_text">أرفق الملف</string>
+    <string name="attached_ready">أرفق، %1$d كيلوبايت</string>
+    <string name="attach_hint">أرفق الملف ليحصل طلابك على الكتاب كاملا — PDF أو EPUB أو TXT أو MD. حتى 500 كيلوبايت تقريبا. وبدونه يحصلون على العنوان ويضيفون الملف بأنفسهم.</string>
+    <string name="attach_too_big">هذا الملف أكبر من أن يرسل إلى الصف. حدده بدون ملف أو أرسل ملفا أصغر.</string>
 
     <string name="quiz_title_label">اسم الاختبار</string>
     <string name="question_label">السؤال %1$d</string>

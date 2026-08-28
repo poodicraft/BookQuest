@@ -51,8 +51,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poodicraft.bookquest.R
+import android.util.Base64
 import com.poodicraft.bookquest.data.AccountState
 import com.poodicraft.bookquest.data.Assignment
+import com.poodicraft.bookquest.data.BookFormat
 import com.poodicraft.bookquest.data.Classroom
 import com.poodicraft.bookquest.data.CloudSync
 import com.poodicraft.bookquest.data.LibraryRepository
@@ -452,12 +454,30 @@ private fun StudentClasses(
                     alreadyOwned = library.hasBookTitled(assignment.title),
                     onStartQuiz = { onRunQuiz(schoolClass.id, assignment.id) },
                     onAddBook = {
-                        library.addTextBook(
-                            assignment.title,
-                            assignment.author,
-                            Subject.fromId(assignment.subjectId),
-                            assignment.content
-                        )
+                        val subject = Subject.fromId(assignment.subjectId)
+                        if (assignment.contentBase64.isNotBlank()) {
+                            val bytes = try {
+                                Base64.decode(assignment.contentBase64, Base64.NO_WRAP)
+                            } catch (e: Exception) {
+                                ByteArray(0)
+                            }
+                            if (bytes.isNotEmpty()) {
+                                library.addBinaryBook(
+                                    assignment.title,
+                                    assignment.author,
+                                    subject,
+                                    BookFormat.fromId(assignment.contentFormat),
+                                    bytes
+                                )
+                            }
+                        } else {
+                            library.addTextBook(
+                                assignment.title,
+                                assignment.author,
+                                subject,
+                                assignment.content
+                            )
+                        }
                     }
                 )
             }
@@ -523,7 +543,9 @@ private fun StudentAssignmentCard(
                 ) {
                     Text(stringResource(R.string.quiz_start))
                 }
-            } else if (assignment.content.isNotBlank()) {
+            } else if (assignment.content.isNotBlank() ||
+                assignment.contentBase64.isNotBlank()
+            ) {
                 Button(
                     onClick = {
                         onAddBook()

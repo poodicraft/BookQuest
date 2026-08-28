@@ -265,10 +265,10 @@
     <string name="add_to_library">הוספה לספרייה שלי</string>
     <string name="added_to_library">נוסף לספרייה שלך</string>
     <string name="book_note">הערה לכיתה</string>
-    <string name="attach_text">צירוף קובץ טקסט</string>
-    <string name="attached_ready">צורף, %1$d תווים</string>
-    <string name="attach_hint">מצרפים קובץ TXT או MD והתלמידים מקבלים את הספר המלא. בלי קובץ הם מקבלים את השם ומוסיפים אותו בעצמם.</string>
-    <string name="attach_too_big">הקובץ גדול מדי לשליחה לכיתה</string>
+    <string name="attach_text">צירוף הקובץ</string>
+    <string name="attached_ready">צורף, %1$d ק״ב</string>
+    <string name="attach_hint">מצרפים את הקובץ והתלמידים מקבלים את הספר המלא — PDF, EPUB, TXT או MD. עד כ־500 ק״ב. בלי קובץ הם מקבלים את השם ומוסיפים אותו בעצמם.</string>
+    <string name="attach_too_big">הקובץ גדול מדי לשליחה לכיתה. אפשר לתת אותו בלי קובץ, או לשלוח קובץ קטן יותר.</string>
 
     <string name="quiz_title_label">שם החידון</string>
     <string name="question_label">שאלה %1$d</string>

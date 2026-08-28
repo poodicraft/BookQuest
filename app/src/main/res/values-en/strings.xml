@@ -265,10 +265,10 @@
     <string name="add_to_library">Add to my library</string>
     <string name="added_to_library">Added to your library</string>
     <string name="book_note">Note for the class</string>
-    <string name="attach_text">Attach a text file</string>
-    <string name="attached_ready">Attached, %1$d characters</string>
-    <string name="attach_hint">Attach a TXT or MD file and your students get the whole book. Without one they get the title and add the file themselves.</string>
-    <string name="attach_too_big">That file is too large to send to the class</string>
+    <string name="attach_text">Attach the file</string>
+    <string name="attached_ready">Attached, %1$d KB</string>
+    <string name="attach_hint">Attach the file and your students get the whole book — PDF, EPUB, TXT or MD. Up to about 500 KB. Without one they get the title and add the file themselves.</string>
+    <string name="attach_too_big">That file is too large to send to the class. Set it without a file, or send a smaller one.</string>
 
     <string name="quiz_title_label">Quiz name</string>
     <string name="question_label">Question %1$d</string>

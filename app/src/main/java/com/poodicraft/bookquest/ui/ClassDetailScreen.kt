@@ -59,8 +59,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.poodicraft.bookquest.R
+import android.util.Base64
 import com.poodicraft.bookquest.data.Assignment
+import com.poodicraft.bookquest.data.BookFormat
 import com.poodicraft.bookquest.data.ClassMember
+import com.poodicraft.bookquest.data.FileType
 import com.poodicraft.bookquest.data.Classroom
 import com.poodicraft.bookquest.data.QuizQuestion
 import com.poodicraft.bookquest.data.QuizResult
@@ -74,6 +77,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private enum class DetailMode { OVERVIEW, SET_BOOK, WRITE_QUIZ }
+
+private class AttachedFile(val format: BookFormat, val bytes: ByteArray)
 
 private data class QuestionDraft(
     val prompt: String = "",
@@ -460,7 +465,11 @@ private fun SetBookForm(
     var note by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf(Subject.GENERAL) }
     var content by remember { mutableStateOf("") }
+    var contentBase64 by remember { mutableStateOf("") }
+    var contentFormat by remember { mutableStateOf("") }
+    var attachedBytes by remember { mutableIntStateOf(0) }
     var tooBig by remember { mutableStateOf(false) }
+    var unreadable by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
 
@@ -469,22 +478,47 @@ private fun SetBookForm(
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
-            val text = withContext(Dispatchers.IO) {
+            val loaded = withContext(Dispatchers.IO) {
                 try {
-                    context.contentResolver.openInputStream(uri)?.use { stream ->
-                        String(stream.readBytes(), Charsets.UTF_8)
-                    }.orEmpty()
+                    val mime = context.contentResolver.getType(uri)
+                    val bytes = context.contentResolver.openInputStream(uri)
+                        ?.use { it.readBytes() } ?: return@withContext null
+                    val head = bytes.copyOf(minOf(bytes.size, FileType.HEAD_BYTES))
+                    AttachedFile(FileType.detect(null, mime, head), bytes)
                 } catch (e: Exception) {
-                    ""
+                    null
                 }
             }
-            if (text.length > Assignment.MAX_INLINE_CHARS) {
-                tooBig = true
-                content = ""
-            } else {
-                tooBig = false
-                content = text
-                if (title.isBlank()) title = "?"
+
+            tooBig = false
+            unreadable = false
+            content = ""
+            contentBase64 = ""
+            contentFormat = ""
+            attachedBytes = 0
+
+            when {
+                loaded == null || loaded.format == BookFormat.UNKNOWN -> unreadable = true
+
+                // Text formats travel as text so they stay searchable and small.
+                loaded.format == BookFormat.TXT || loaded.format == BookFormat.HTML -> {
+                    val text = String(loaded.bytes, Charsets.UTF_8)
+                    if (text.length > Assignment.MAX_INLINE_CHARS) {
+                        tooBig = true
+                    } else {
+                        content = text
+                        attachedBytes = loaded.bytes.size
+                    }
+                }
+
+                // Everything else goes whole, encoded into the document.
+                loaded.bytes.size > Assignment.MAX_INLINE_BYTES -> tooBig = true
+
+                else -> {
+                    contentBase64 = Base64.encodeToString(loaded.bytes, Base64.NO_WRAP)
+                    contentFormat = loaded.format.id
+                    attachedBytes = loaded.bytes.size
+                }
             }
         }
     }
@@ -568,17 +602,23 @@ private fun SetBookForm(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (content.isNotBlank()) {
-                                stringResource(R.string.attached_ready, content.length)
+                            text = if (attachedBytes > 0) {
+                                stringResource(
+                                    R.string.attached_ready,
+                                    (attachedBytes / 1024).coerceAtLeast(1)
+                                )
                             } else {
                                 stringResource(R.string.attach_text)
                             }
                         )
                     }
-                    if (tooBig) {
+                    if (tooBig || unreadable) {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = stringResource(R.string.attach_too_big),
+                            text = stringResource(
+                                if (tooBig) R.string.attach_too_big
+                                else R.string.reader_error
+                            ),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -603,7 +643,8 @@ private fun SetBookForm(
                     failed = false
                     scope.launch {
                         val result = classroom.assignBook(
-                            classId, title, author, subject, note, content
+                            classId, title, author, subject, note, content,
+                            contentBase64, contentFormat
                         )
                         busy = false
                         if (result.isSuccess) onDone() else failed = true

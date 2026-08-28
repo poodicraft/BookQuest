@@ -38,6 +38,29 @@ jobs:
           ls "$ANDROID_HOME/platforms" || true
           ls "$ANDROID_HOME/build-tools" || true
 
+      - name: Check the string resources
+        run: |
+          fail=0
+          files="app/src/main/res/values/strings.xml app/src/main/res/values-en/strings.xml app/src/main/res/values-ar/strings.xml"
+          for f in $files; do
+            dupes=$(grep -o 'name="[a-z0-9_]*"' "$f" | sort | uniq -d)
+            if [ -n "$dupes" ]; then
+              echo "Duplicate keys in $f:"
+              echo "$dupes"
+              fail=1
+            fi
+          done
+          base=$(grep -o 'name="[a-z0-9_]*"' app/src/main/res/values-en/strings.xml | sort)
+          for f in app/src/main/res/values/strings.xml app/src/main/res/values-ar/strings.xml; do
+            if ! diff <(echo "$base") <(grep -o 'name="[a-z0-9_]*"' "$f" | sort) > /dev/null; then
+              echo "Key set differs from values-en in $f:"
+              diff <(echo "$base") <(grep -o 'name="[a-z0-9_]*"' "$f" | sort) || true
+              fail=1
+            fi
+          done
+          if [ "$fail" = "0" ]; then echo "Strings are consistent across all three languages."; fi
+          exit $fail
+
       - name: Check the Gradle wrapper
         timeout-minutes: 10
         run: ./gradlew --no-daemon --console=plain --version

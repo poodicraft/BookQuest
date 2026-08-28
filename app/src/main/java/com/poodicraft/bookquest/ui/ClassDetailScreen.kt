@@ -401,7 +401,7 @@ private fun Overview(
         if (results.isEmpty()) {
             item {
                 Text(
-                    text = stringResource(R.string.no_results),
+                    text = stringResource(R.string.no_quiz_results),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

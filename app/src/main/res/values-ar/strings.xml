@@ -281,7 +281,7 @@
     <string name="delete_item">إزالة</string>
 
     <string name="results_title">النتائج</string>
-    <string name="no_results">لم ينه أحد اختبارا بعد</string>
+    <string name="no_quiz_results">لم ينه أحد اختبارا بعد</string>
     <string name="result_line">%1$s من %2$s</string>
 
     <string name="type_your_answer">اكتب جوابك</string>

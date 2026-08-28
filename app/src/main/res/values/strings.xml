@@ -281,7 +281,7 @@
     <string name="delete_item">הסרה</string>
 
     <string name="results_title">תוצאות</string>
-    <string name="no_results">אף אחד עוד לא סיים חידון</string>
+    <string name="no_quiz_results">אף אחד עוד לא סיים חידון</string>
     <string name="result_line">%1$s מתוך %2$s</string>
 
     <string name="type_your_answer">כתבו את התשובה</string>

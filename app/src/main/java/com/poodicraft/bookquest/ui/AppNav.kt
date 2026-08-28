@@ -77,13 +77,16 @@ private data class Celebration(val emoji: String, val title: String, val message
 
 private data class TabItem(val route: String, val labelRes: Int, val icon: ImageVector)
 
-private val TABS = listOf(
+private val STUDENT_TABS = listOf(
     TabItem(Routes.HOME, R.string.nav_home, Icons.Rounded.Home),
     TabItem(Routes.LIBRARY, R.string.nav_library, Icons.Rounded.AutoStories),
     TabItem(Routes.CLASS, R.string.nav_class, Icons.Rounded.School),
     TabItem(Routes.STATS, R.string.nav_stats, Icons.Rounded.EmojiEvents),
     TabItem(Routes.SETTINGS, R.string.nav_settings, Icons.Rounded.Settings)
 )
+
+/** Teachers do not collect XP or badges, so the progress tab is not theirs. */
+private val TEACHER_TABS = STUDENT_TABS.filterNot { it.route == Routes.STATS }
 
 @Composable
 fun BookQuestRoot(
@@ -142,11 +145,13 @@ fun BookQuestRoot(
                     snackbarHostState.showSnackbar(message)
                 }
             }
+            val teaching = classroom.profile.value.role == UserRole.TEACHER
             when (event) {
-                is AppEvent.Xp -> toast(context.getString(R.string.xp_earned, event.amount))
+                is AppEvent.Xp ->
+                    if (!teaching) toast(context.getString(R.string.xp_earned, event.amount))
                 is AppEvent.Imported -> toast(context.getString(R.string.imported_count, event.count))
                 is AppEvent.Failed -> toast(context.getString(R.string.import_failed))
-                is AppEvent.LevelUp -> {
+                is AppEvent.LevelUp -> if (!teaching) {
                     confettiTrigger += 1
                     celebration = Celebration(
                         emoji = "🎉",
@@ -154,7 +159,7 @@ fun BookQuestRoot(
                         message = context.getString(R.string.level_up_message, event.level)
                     )
                 }
-                is AppEvent.BadgeUnlocked -> {
+                is AppEvent.BadgeUnlocked -> if (!teaching) {
                     val badge = Badges.ALL.firstOrNull { it.id == event.badgeId }
                     if (badge != null) {
                         confettiTrigger += 1
@@ -169,9 +174,12 @@ fun BookQuestRoot(
         }
     }
 
+    val isTeacher = schoolProfile.role == UserRole.TEACHER
+    val tabs = if (isTeacher) TEACHER_TABS else STUDENT_TABS
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val onTab = TABS.any { it.route == currentRoute }
+    val onTab = tabs.any { it.route == currentRoute }
 
     if (account is AccountState.SignedOut && !skippedSignIn) {
         AuthScreen(
@@ -197,7 +205,11 @@ fun BookQuestRoot(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 if (onTab) {
-                    BottomBar(navController = navController, currentRoute = currentRoute)
+                    BottomBar(
+                        navController = navController,
+                        currentRoute = currentRoute,
+                        tabs = tabs
+                    )
                 }
             },
             floatingActionButton = {
@@ -221,6 +233,8 @@ fun BookQuestRoot(
                         HomeScreen(
                             books = books,
                             profile = profile,
+                            isTeacher = isTeacher,
+                            onOpenClasses = { navController.navigate(Routes.CLASS) },
                             onOpenBook = { id -> navController.navigate("${Routes.BOOK}/$id") },
                             onRead = { id -> navController.navigate("${Routes.READER}/$id") },
                             onImport = openImporter,
@@ -261,7 +275,21 @@ fun BookQuestRoot(
                         )
                     }
                     composable(Routes.STATS) {
-                        StatsScreen(books = books, profile = profile)
+                        if (isTeacher) {
+                            ClassScreen(
+                                onOpenClass = { id ->
+                                    navController.navigate("${Routes.CLASS_DETAIL}/$id")
+                                },
+                                onRunQuiz = { classId, assignmentId ->
+                                    navController.navigate(
+                                        "${Routes.CLASS_QUIZ}/$classId/$assignmentId"
+                                    )
+                                },
+                                onSignIn = { skippedSignIn = false }
+                            )
+                        } else {
+                            StatsScreen(books = books, profile = profile)
+                        }
                     }
                     composable(Routes.SETTINGS) {
                         SettingsScreen(
@@ -334,12 +362,16 @@ fun BookQuestRoot(
 }
 
 @Composable
-private fun BottomBar(navController: NavHostController, currentRoute: String?) {
+private fun BottomBar(
+    navController: NavHostController,
+    currentRoute: String?,
+    tabs: List<TabItem>
+) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 6.dp
     ) {
-        TABS.forEach { tab ->
+        tabs.forEach { tab ->
             val selected = currentRoute == tab.route
             NavigationBarItem(
                 selected = selected,

@@ -142,6 +142,7 @@ fun ClassScreen(
             classroom = classroom,
             library = library,
             onRunQuiz = onRunQuiz,
+            onOpenClass = onOpenClass,
             onJoined = { refreshKey += 1 }
         )
     }
@@ -314,6 +315,7 @@ private fun StudentClasses(
     classroom: Classroom,
     library: LibraryRepository,
     onRunQuiz: (String, String) -> Unit,
+    onOpenClass: (String) -> Unit,
     onJoined: () -> Unit
 ) {
     var code by remember { mutableStateOf("") }
@@ -424,8 +426,8 @@ private fun StudentClasses(
 
         for (schoolClass in classes) {
             item(key = "head-" + schoolClass.id) {
-                Column {
-                    SectionHeader(title = schoolClass.name)
+                Column(modifier = Modifier.clickable { onOpenClass(schoolClass.id) }) {
+                    SectionHeader(title = schoolClass.name + "  ›")
                     if (schoolClass.teacherName.isNotBlank()) {
                         Text(
                             text = stringResource(R.string.teacher_label) + ": " +
@@ -453,6 +455,7 @@ private fun StudentClasses(
                     assignment = assignment,
                     alreadyOwned = library.hasBookTitled(assignment.title),
                     onStartQuiz = { onRunQuiz(schoolClass.id, assignment.id) },
+                    onOpenClass = { onOpenClass(schoolClass.id) },
                     onAddBook = {
                         val subject = Subject.fromId(assignment.subjectId)
                         if (assignment.contentBase64.isNotBlank()) {
@@ -490,6 +493,7 @@ private fun StudentAssignmentCard(
     assignment: Assignment,
     alreadyOwned: Boolean,
     onStartQuiz: () -> Unit,
+    onOpenClass: () -> Unit,
     onAddBook: () -> Unit
 ) {
     var added by remember(assignment.id) { mutableStateOf(false) }
@@ -500,7 +504,14 @@ private fun StudentAssignmentCard(
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = if (assignment.isQuiz) "🧠" else "📘", fontSize = 24.sp)
+                Text(
+                    text = when {
+                        assignment.isQuiz -> "🧠"
+                        assignment.isHomework -> "📝"
+                        else -> "📘"
+                    },
+                    fontSize = 24.sp
+                )
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -509,10 +520,19 @@ private fun StudentAssignmentCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (assignment.isQuiz) {
-                            stringResource(R.string.questions_count, assignment.questions.size)
-                        } else {
-                            assignment.author.ifBlank {
+                        text = when {
+                            assignment.isQuiz -> stringResource(
+                                R.string.questions_count,
+                                assignment.questions.size
+                            )
+
+                            assignment.isHomework -> if (assignment.dueAt > 0L) {
+                                stringResource(R.string.due_on, "")
+                            } else {
+                                stringResource(R.string.due_none)
+                            }
+
+                            else -> assignment.author.ifBlank {
                                 stringResource(Subject.fromId(assignment.subjectId).labelRes)
                             }
                         },
@@ -533,7 +553,17 @@ private fun StudentAssignmentCard(
 
             Spacer(Modifier.height(14.dp))
 
-            if (assignment.isQuiz) {
+            if (assignment.isHomework) {
+                Button(
+                    onClick = onOpenClass,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(stringResource(R.string.open_homework))
+                }
+            } else if (assignment.isQuiz) {
                 Button(
                     onClick = onStartQuiz,
                     modifier = Modifier

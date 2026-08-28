@@ -124,20 +124,25 @@ is there. So: turn everything on first, download the file last.
 | "That sign in method is not switched on for this app yet" | The provider behind the button you pressed is disabled in *Authentication → Sign-in method*. |
 | "Wrong email or password" on an account you just made | The account was created against a different Firebase project. Delete the app data and sign in again. |
 
-## Classes need one more rule change
+## Classes need their own rules
 
-Version 1.4 added teacher accounts and classes, which means documents that a
-teacher and their students share. The rules from step 4 only cover each
-student's own document, so **classes will fail with a permission error until
+Teacher accounts, class streams and homework all live in documents a teacher
+and their students share. The rules from step 4 only cover each student's own
+document, so **anything to do with classes fails with a permission error until
 you replace them**.
 
-Go back to *Firestore Database → Rules*, paste this in place of what is there,
-and publish:
+Go back to *Firestore Database → Rules*, select everything in the box, paste
+this in its place, and publish. This set is complete — it still contains the
+per-student rule from step 4, so nothing is lost by replacing.
 
 ```
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function teacherOf(database, classId) {
+      return get(/databases/$(database)/documents/classes/$(classId)).data.teacherUid;
+    }
 
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -156,15 +161,33 @@ service cloud.firestore {
         allow create, update: if request.auth != null && request.auth.uid == memberId;
         allow delete: if request.auth != null
                       && (request.auth.uid == memberId
-                          || get(/databases/$(database)/documents/classes/$(classId))
-                               .data.teacherUid == request.auth.uid);
+                          || teacherOf(database, classId) == request.auth.uid);
+      }
+
+      // The class stream. Anyone in the class can post; you can delete your own
+      // message, and the teacher can delete any of them.
+      match /posts/{postId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null
+                      && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if request.auth != null
+                      && (resource.data.authorUid == request.auth.uid
+                          || teacherOf(database, classId) == request.auth.uid);
       }
 
       match /assignments/{assignmentId} {
         allow read: if request.auth != null;
         allow write: if request.auth != null
-                     && get(/databases/$(database)/documents/classes/$(classId))
-                          .data.teacherUid == request.auth.uid;
+                     && teacherOf(database, classId) == request.auth.uid;
+
+        // Homework hand-ins. A student writes only their own; the teacher
+        // writes the mark on any of them.
+        match /submissions/{studentId} {
+          allow read: if request.auth != null;
+          allow create, update: if request.auth != null
+                       && (request.auth.uid == studentId
+                           || teacherOf(database, classId) == request.auth.uid);
+        }
       }
 
       match /results/{resultId} {
@@ -178,9 +201,10 @@ service cloud.firestore {
 ```
 
 What this allows: a student can only ever write their own profile, their own
-roster entry and their own quiz result; only the teacher who created a class
-can set work in it or change it. Class names and codes are readable by anyone
-signed in, which is what makes a join code work at all.
+roster entry, their own messages, their own hand-ins and their own quiz
+results. Only the teacher who created a class can set work in it or mark
+anything. Class names and codes are readable by anyone signed in, which is
+what makes a join code work at all.
 
 ## What actually gets backed up
 

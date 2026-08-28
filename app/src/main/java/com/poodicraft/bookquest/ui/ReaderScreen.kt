@@ -77,7 +77,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poodicraft.bookquest.R
 import com.poodicraft.bookquest.data.Book
 import com.poodicraft.bookquest.data.BookFormat
@@ -170,6 +172,7 @@ fun ReaderScreen(
         return
     }
 
+    val context = LocalContext.current
     var fontSize by remember { mutableFloatStateOf(prefs.readerFontSize) }
     var themeName by remember { mutableStateOf(prefs.readerTheme) }
     var showSettings by remember { mutableStateOf(false) }
@@ -221,6 +224,10 @@ fun ReaderScreen(
             milestoneText = null
         }
     }
+
+    val classroom = remember { com.poodicraft.bookquest.data.Classroom.get(context) }
+    val teaching by classroom.profile.collectAsStateWithLifecycle()
+    val showsXp = teaching.role != com.poodicraft.bookquest.data.UserRole.TEACHER
 
     val file = remember(bookId) { repository.bookFile(book) }
     val listState = rememberLazyListState()
@@ -302,6 +309,7 @@ fun ReaderScreen(
                 style = style,
                 progress = progressState.floatValue,
                 sessionMinutes = sessionMinutes,
+                showsXp = showsXp,
                 onBack = onBack,
                 onSettings = { showSettings = true }
             )
@@ -436,6 +444,7 @@ private fun ReaderTopBar(
     style: PageStyle,
     progress: Float,
     sessionMinutes: Int,
+    showsXp: Boolean,
     onBack: () -> Unit,
     onSettings: () -> Unit
 ) {
@@ -477,7 +486,7 @@ private fun ReaderTopBar(
                     style = MaterialTheme.typography.labelMedium
                 )
             }
-            SessionChip(style = style, minutes = sessionMinutes)
+            SessionChip(style = style, minutes = sessionMinutes, showsXp = showsXp)
             IconButton(onClick = onSettings) {
                 Icon(
                     Icons.Rounded.Settings,
@@ -510,7 +519,7 @@ private fun ReaderTopBar(
 }
 
 @Composable
-private fun SessionChip(style: PageStyle, minutes: Int) {
+private fun SessionChip(style: PageStyle, minutes: Int, showsXp: Boolean) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(14.dp))
@@ -526,15 +535,17 @@ private fun SessionChip(style: PageStyle, minutes: Int) {
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold
         )
-        Spacer(Modifier.width(8.dp))
-        Text(text = "⚡", fontSize = 13.sp)
-        Spacer(Modifier.width(3.dp))
-        Text(
-            text = (minutes * XP_PER_MINUTE).toString(),
-            color = style.accent,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold
-        )
+        if (showsXp) {
+            Spacer(Modifier.width(8.dp))
+            Text(text = "⚡", fontSize = 13.sp)
+            Spacer(Modifier.width(3.dp))
+            Text(
+                text = (minutes * XP_PER_MINUTE).toString(),
+                color = style.accent,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
@@ -52,6 +53,8 @@ import java.util.Calendar
 fun HomeScreen(
     books: List<Book>,
     profile: Profile,
+    isTeacher: Boolean,
+    onOpenClasses: () -> Unit,
     onOpenBook: (String) -> Unit,
     onRead: (String) -> Unit,
     onImport: () -> Unit,
@@ -89,31 +92,35 @@ fun HomeScreen(
             }
         }
 
-        item { LevelCard(profile = profile) }
+        if (isTeacher) {
+            item { TeacherCard(onOpenClasses = onOpenClasses) }
+        } else {
+            item { LevelCard(profile = profile) }
 
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatTile(
-                    emoji = "🔥",
-                    value = profile.streak.toString(),
-                    label = stringResource(R.string.streak_days, profile.streak),
-                    colors = listOf(Brand.Coral, Brand.Sun),
-                    modifier = Modifier.weight(1f)
-                )
-                StatTile(
-                    emoji = "📚",
-                    value = books.size.toString(),
-                    label = stringResource(R.string.books_in_library),
-                    colors = listOf(Brand.Violet, Brand.Bubblegum),
-                    modifier = Modifier.weight(1f)
-                )
-                StatTile(
-                    emoji = "🏁",
-                    value = books.count { it.finished }.toString(),
-                    label = stringResource(R.string.books_finished),
-                    colors = listOf(Brand.Mint, Brand.Sky),
-                    modifier = Modifier.weight(1f)
-                )
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    StatTile(
+                        emoji = "🔥",
+                        value = profile.streak.toString(),
+                        label = stringResource(R.string.streak_days, profile.streak),
+                        colors = listOf(Brand.Coral, Brand.Sun),
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatTile(
+                        emoji = "📚",
+                        value = books.size.toString(),
+                        label = stringResource(R.string.books_in_library),
+                        colors = listOf(Brand.Violet, Brand.Bubblegum),
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatTile(
+                        emoji = "🏁",
+                        value = books.count { it.finished }.toString(),
+                        label = stringResource(R.string.books_finished),
+                        colors = listOf(Brand.Mint, Brand.Sky),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
 
@@ -203,6 +210,45 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 }
+            }
+        }
+    }
+}
+
+/** A teacher's home: their classroom, not a scoreboard. */
+@Composable
+private fun TeacherCard(onOpenClasses: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(30.dp))
+            .background(Brush.linearGradient(listOf(Brand.VioletDeep, Brand.Violet, Brand.Sky)))
+            .padding(22.dp)
+    ) {
+        Column {
+            Text(text = "🍎", fontSize = 30.sp)
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.teacher_home_title),
+                color = Color.White,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(R.string.teacher_home_hint),
+                color = Color.White.copy(alpha = 0.88f),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = onOpenClasses,
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Brand.VioletDeep
+                )
+            ) {
+                Text(stringResource(R.string.go_to_classes))
             }
         }
     }

@@ -71,13 +71,16 @@ data class Assignment(
     /** Which format [contentBase64] holds, as a [BookFormat] id. */
     val contentFormat: String = "",
     val questions: List<QuizQuestion> = emptyList(),
+    val dueAt: Long = 0L,
     val createdAt: Long = 0L
 ) {
     val isQuiz: Boolean get() = kind == KIND_QUIZ
+    val isHomework: Boolean get() = kind == KIND_HOMEWORK
 
     companion object {
         const val KIND_BOOK = "book"
         const val KIND_QUIZ = "quiz"
+        const val KIND_HOMEWORK = "homework"
 
         /** Firestore documents cap at 1 MiB, so inline book text is kept well under it. */
         const val MAX_INLINE_CHARS = 400_000
@@ -88,6 +91,35 @@ data class Assignment(
          */
         const val MAX_INLINE_BYTES = 550_000
     }
+}
+
+/** A message on a class stream, optionally carrying a file. */
+data class ClassPost(
+    val id: String = "",
+    val authorUid: String = "",
+    val authorName: String = "",
+    val authorRole: String = "",
+    val text: String = "",
+    val fileName: String = "",
+    val fileFormat: String = "",
+    val fileBase64: String = "",
+    val createdAt: Long = 0L
+)
+
+/** One student's answer to a piece of homework, and the teacher's marking. */
+data class Submission(
+    val studentUid: String = "",
+    val studentName: String = "",
+    val text: String = "",
+    val fileName: String = "",
+    val fileFormat: String = "",
+    val fileBase64: String = "",
+    val submittedAt: Long = 0L,
+    val grade: String = "",
+    val feedback: String = "",
+    val gradedAt: Long = 0L
+) {
+    val isGraded: Boolean get() = gradedAt > 0L
 }
 
 data class QuizResult(
@@ -469,7 +501,209 @@ class Classroom private constructor(private val appContext: Context) {
             }
         }
 
-    // ---------------------------------------------------------------- results
+    // ------------------------------------------------------------- the stream
+
+    suspend fun posts(classId: String): Result<List<ClassPost>> = withContext(Dispatchers.IO) {
+        val store = db ?: return@withContext Result.failure(NotSignedIn())
+        try {
+            val list = store.collection("classes").document(classId)
+                .collection("posts").get().await()
+                .documents.map { doc ->
+                    ClassPost(
+                        id = doc.id,
+                        authorUid = doc.getString("authorUid").orEmpty(),
+                        authorName = doc.getString("authorName").orEmpty(),
+                        authorRole = doc.getString("authorRole").orEmpty(),
+                        text = doc.getString("text").orEmpty(),
+                        fileName = doc.getString("fileName").orEmpty(),
+                        fileFormat = doc.getString("fileFormat").orEmpty(),
+                        fileBase64 = doc.getString("fileBase64").orEmpty(),
+                        createdAt = doc.getLong("createdAt") ?: 0L
+                    )
+                }
+            Result.success(list.sortedByDescending { it.createdAt })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun addPost(
+        classId: String,
+        text: String,
+        fileName: String = "",
+        fileFormat: String = "",
+        fileBase64: String = ""
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val id = uid ?: return@withContext Result.failure(NotSignedIn())
+        val store = db ?: return@withContext Result.failure(NotSignedIn())
+        if (text.isBlank() && fileBase64.isBlank()) return@withContext Result.failure(EmptyName())
+        try {
+            store.collection("classes").document(classId)
+                .collection("posts").document()
+                .set(
+                    mapOf(
+                        "authorUid" to id,
+                        "authorName" to currentName(),
+                        "authorRole" to _profile.value.role.id,
+                        "text" to text.trim(),
+                        "fileName" to fileName,
+                        "fileFormat" to fileFormat,
+                        "fileBase64" to fileBase64,
+                        "createdAt" to System.currentTimeMillis()
+                    )
+                ).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deletePost(classId: String, postId: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            val store = db ?: return@withContext Result.failure(NotSignedIn())
+            try {
+                store.collection("classes").document(classId)
+                    .collection("posts").document(postId).delete().await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    // ---------------------------------------------------------------- homework
+
+    suspend fun assignHomework(
+        classId: String,
+        title: String,
+        instructions: String,
+        dueAt: Long
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val store = db ?: return@withContext Result.failure(NotSignedIn())
+        if (title.isBlank()) return@withContext Result.failure(EmptyName())
+        try {
+            store.collection("classes").document(classId)
+                .collection("assignments").document()
+                .set(
+                    mapOf(
+                        "kind" to Assignment.KIND_HOMEWORK,
+                        "title" to title.trim(),
+                        "note" to instructions.trim(),
+                        "dueAt" to dueAt,
+                        "createdAt" to System.currentTimeMillis()
+                    )
+                ).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun submitHomework(
+        classId: String,
+        assignmentId: String,
+        text: String,
+        fileName: String = "",
+        fileFormat: String = "",
+        fileBase64: String = ""
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val id = uid ?: return@withContext Result.failure(NotSignedIn())
+        val store = db ?: return@withContext Result.failure(NotSignedIn())
+        try {
+            store.collection("classes").document(classId)
+                .collection("assignments").document(assignmentId)
+                .collection("submissions").document(id)
+                .set(
+                    mapOf(
+                        "studentUid" to id,
+                        "studentName" to currentName(),
+                        "text" to text.trim(),
+                        "fileName" to fileName,
+                        "fileFormat" to fileFormat,
+                        "fileBase64" to fileBase64,
+                        "submittedAt" to System.currentTimeMillis()
+                    ),
+                    com.google.firebase.firestore.SetOptions.merge()
+                ).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun submissions(classId: String, assignmentId: String): Result<List<Submission>> =
+        withContext(Dispatchers.IO) {
+            val store = db ?: return@withContext Result.failure(NotSignedIn())
+            try {
+                val list = store.collection("classes").document(classId)
+                    .collection("assignments").document(assignmentId)
+                    .collection("submissions").get().await()
+                    .documents.map { submissionFrom(it) }
+                Result.success(list.sortedBy { it.studentName.lowercase() })
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    suspend fun mySubmission(classId: String, assignmentId: String): Submission? =
+        withContext(Dispatchers.IO) {
+            val id = uid ?: return@withContext null
+            val store = db ?: return@withContext null
+            try {
+                val doc = store.collection("classes").document(classId)
+                    .collection("assignments").document(assignmentId)
+                    .collection("submissions").document(id).get().await()
+                if (doc.exists()) submissionFrom(doc) else null
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+    suspend fun gradeSubmission(
+        classId: String,
+        assignmentId: String,
+        studentUid: String,
+        grade: String,
+        feedback: String
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val store = db ?: return@withContext Result.failure(NotSignedIn())
+        try {
+            store.collection("classes").document(classId)
+                .collection("assignments").document(assignmentId)
+                .collection("submissions").document(studentUid)
+                .set(
+                    mapOf(
+                        "grade" to grade.trim(),
+                        "feedback" to feedback.trim(),
+                        "gradedAt" to System.currentTimeMillis()
+                    ),
+                    com.google.firebase.firestore.SetOptions.merge()
+                ).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun submissionFrom(
+        doc: com.google.firebase.firestore.DocumentSnapshot
+    ): Submission = Submission(
+        studentUid = doc.getString("studentUid") ?: doc.id,
+        studentName = doc.getString("studentName").orEmpty(),
+        text = doc.getString("text").orEmpty(),
+        fileName = doc.getString("fileName").orEmpty(),
+        fileFormat = doc.getString("fileFormat").orEmpty(),
+        fileBase64 = doc.getString("fileBase64").orEmpty(),
+        submittedAt = doc.getLong("submittedAt") ?: 0L,
+        grade = doc.getString("grade").orEmpty(),
+        feedback = doc.getString("feedback").orEmpty(),
+        gradedAt = doc.getLong("gradedAt") ?: 0L
+    )
+
+    private fun currentName(): String = _profile.value.displayName
+        .ifBlank { auth?.currentUser?.displayName.orEmpty() }
+        .ifBlank { auth?.currentUser?.email.orEmpty() }
+
+    // ----------------------------------------------------------------- results
 
     suspend fun submitResult(
         classId: String,
@@ -561,6 +795,7 @@ class Classroom private constructor(private val appContext: Context) {
             author = doc.getString("author").orEmpty(),
             subjectId = doc.getString("subject") ?: Subject.GENERAL.id,
             note = doc.getString("note").orEmpty(),
+            dueAt = doc.getLong("dueAt") ?: 0L,
             content = doc.getString("content").orEmpty(),
             contentBase64 = doc.getString("contentBase64").orEmpty(),
             contentFormat = doc.getString("contentFormat").orEmpty(),

@@ -47,10 +47,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poodicraft.bookquest.BuildConfig
 import com.poodicraft.bookquest.R
 import com.poodicraft.bookquest.data.AccountState
+import com.poodicraft.bookquest.data.Classroom
 import com.poodicraft.bookquest.data.CloudSync
 import com.poodicraft.bookquest.data.LibraryRepository
 import com.poodicraft.bookquest.data.Profile
 import com.poodicraft.bookquest.data.SyncState
+import com.poodicraft.bookquest.data.UserRole
 import com.poodicraft.bookquest.ui.components.SectionHeader
 import com.poodicraft.bookquest.ui.theme.Brand
 import kotlinx.coroutines.launch
@@ -75,6 +77,12 @@ fun SettingsScreen(
     profile: Profile,
     repository: LibraryRepository
 ) {
+    val context = LocalContext.current
+    val classroom = remember { Classroom.get(context) }
+    val schoolProfile by classroom.profile.collectAsStateWithLifecycle()
+    // A daily reading goal belongs to the reader, not to whoever set the work.
+    val isTeacher = schoolProfile.role == UserRole.TEACHER
+
     var goal by remember { mutableFloatStateOf(profile.dailyGoal.toFloat()) }
     var showSignIn by remember { mutableStateOf(false) }
     var showRole by remember { mutableStateOf(false) }
@@ -175,26 +183,30 @@ fun SettingsScreen(
             }
         }
 
-        item { SectionHeader(title = "🎯 " + stringResource(R.string.daily_goal)) }
+        if (!isTeacher) {
+            item { SectionHeader(title = "🎯 " + stringResource(R.string.daily_goal)) }
 
-        item {
-            Card(
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Text(
-                        text = stringResource(R.string.daily_goal_minutes, goal.toInt()),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+            item {
+                Card(
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
-                    Slider(
-                        value = goal,
-                        onValueChange = { goal = it },
-                        onValueChangeFinished = { repository.setDailyGoal(goal.toInt()) },
-                        valueRange = 5f..90f,
-                        steps = 16
-                    )
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text(
+                            text = stringResource(R.string.daily_goal_minutes, goal.toInt()),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Slider(
+                            value = goal,
+                            onValueChange = { goal = it },
+                            onValueChangeFinished = { repository.setDailyGoal(goal.toInt()) },
+                            valueRange = 5f..90f,
+                            steps = 16
+                        )
+                    }
                 }
             }
         }

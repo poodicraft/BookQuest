@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -112,9 +113,6 @@ fun BookQuestRoot(
         if (account is AccountState.SignedIn) classroom.ensureLoaded()
     }
 
-    val books by repository.books.collectAsStateWithLifecycle()
-    val profile by repository.profile.collectAsStateWithLifecycle()
-
     // Signed out launches open on the welcome screen. "Not now" dismisses it for
     // this run of the app, so it is not a wall you cannot get past.
     var skippedSignIn by rememberSaveable { mutableStateOf(false) }
@@ -129,11 +127,15 @@ fun BookQuestRoot(
         if (uris.isNotEmpty()) repository.importUris(uris)
     }
 
-    val openImporter: () -> Unit = {
-        try {
-            importLauncher.launch(arrayOf("*/*"))
-        } catch (e: Exception) {
-            scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.import_failed)) }
+    val openImporter: () -> Unit = remember {
+        {
+            try {
+                importLauncher.launch(arrayOf("*/*"))
+            } catch (e: Exception) {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.import_failed))
+                }
+            }
         }
     }
 
@@ -230,10 +232,13 @@ fun BookQuestRoot(
                     startDestination = Routes.HOME
                 ) {
                     composable(Routes.HOME) {
+                        val books by repository.books.collectAsStateWithLifecycle()
+                        val profile by repository.profile.collectAsStateWithLifecycle()
+                        val teaching by classroom.profile.collectAsStateWithLifecycle()
                         HomeScreen(
                             books = books,
                             profile = profile,
-                            isTeacher = isTeacher,
+                            isTeacher = teaching.role == UserRole.TEACHER,
                             onOpenClasses = { navController.navigate(Routes.CLASS) },
                             onOpenBook = { id -> navController.navigate("${Routes.BOOK}/$id") },
                             onRead = { id -> navController.navigate("${Routes.READER}/$id") },
@@ -242,6 +247,7 @@ fun BookQuestRoot(
                         )
                     }
                     composable(Routes.LIBRARY) {
+                        val books by repository.books.collectAsStateWithLifecycle()
                         LibraryScreen(
                             books = books,
                             onOpenBook = { id -> navController.navigate("${Routes.BOOK}/$id") },
@@ -275,7 +281,8 @@ fun BookQuestRoot(
                         )
                     }
                     composable(Routes.STATS) {
-                        if (isTeacher) {
+                        val teaching by classroom.profile.collectAsStateWithLifecycle()
+                        if (teaching.role == UserRole.TEACHER) {
                             ClassScreen(
                                 onOpenClass = { id ->
                                     navController.navigate("${Routes.CLASS_DETAIL}/$id")
@@ -288,10 +295,13 @@ fun BookQuestRoot(
                                 onSignIn = { skippedSignIn = false }
                             )
                         } else {
+                            val books by repository.books.collectAsStateWithLifecycle()
+                            val profile by repository.profile.collectAsStateWithLifecycle()
                             StatsScreen(books = books, profile = profile)
                         }
                     }
                     composable(Routes.SETTINGS) {
+                        val profile by repository.profile.collectAsStateWithLifecycle()
                         SettingsScreen(
                             themeMode = themeMode,
                             onThemeModeChange = onThemeModeChange,
@@ -303,6 +313,7 @@ fun BookQuestRoot(
                     }
                     composable("${Routes.BOOK}/{bookId}") { entry ->
                         val id = entry.arguments?.getString("bookId")
+                        val books by repository.books.collectAsStateWithLifecycle()
                         BookDetailScreen(
                             book = books.firstOrNull { it.id == id },
                             repository = repository,
@@ -314,6 +325,7 @@ fun BookQuestRoot(
                     }
                     composable("${Routes.READER}/{bookId}") { entry ->
                         val id = entry.arguments?.getString("bookId")
+                        val books by repository.books.collectAsStateWithLifecycle()
                         ReaderScreen(
                             book = books.firstOrNull { it.id == id },
                             repository = repository,
@@ -323,6 +335,7 @@ fun BookQuestRoot(
                     }
                     composable("${Routes.CARDS}/{bookId}") { entry ->
                         val id = entry.arguments?.getString("bookId")
+                        val books by repository.books.collectAsStateWithLifecycle()
                         CardsScreen(
                             book = books.firstOrNull { it.id == id },
                             repository = repository,
@@ -332,6 +345,7 @@ fun BookQuestRoot(
                     }
                     composable("${Routes.QUIZ}/{bookId}") { entry ->
                         val id = entry.arguments?.getString("bookId")
+                        val books by repository.books.collectAsStateWithLifecycle()
                         QuizScreen(
                             book = books.firstOrNull { it.id == id },
                             repository = repository,
@@ -376,12 +390,21 @@ private fun BottomBar(
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    if (!selected) {
-                        navController.navigate(tab.route) {
-                            popUpTo(Routes.HOME) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                    // Always navigate, even when the bar already draws this tab as
+                    // selected: the highlight is read from the back stack, and if
+                    // that reading went stale the old "skip when selected" guard
+                    // turned the tab into a dead button. launchSingleTop keeps a
+                    // re-tap of the tab you are on from stacking a second copy.
+                    //
+                    // Pop to the graph's own start destination and keep no saved
+                    // per-tab back stacks: a restored stack could put the class
+                    // screen back on top of Home, which is what made Home look
+                    // unreachable.
+                    navController.navigate(tab.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = false
                         }
+                        launchSingleTop = true
                     }
                 },
                 icon = { Icon(tab.icon, contentDescription = null) },

@@ -36,6 +36,7 @@ always tell which build is on the phone.
 
 | Version | What changed |
 | --- | --- |
+| 1.8 (9) | Home tab reachable again from every other tab, no daily reading goal in a teacher's settings |
 | 1.7 (8) | Class stream with messages and files, homework with hand-ins and marking, teachers no longer collect XP |
 | 1.6 (7) | Backup no longer erases your role and classes, real file type detection, progress starts at 0 |
 | 1.5 (6) | Role chosen at sign in, classes no longer drop out mid session, reading progress reaches 100% |

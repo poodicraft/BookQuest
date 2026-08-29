@@ -1,10 +1,8 @@
 package com.poodicraft.bookquest.ui
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -35,9 +32,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,7 +48,6 @@ import com.poodicraft.bookquest.data.Profile
 import com.poodicraft.bookquest.data.SyncState
 import com.poodicraft.bookquest.data.UserRole
 import com.poodicraft.bookquest.ui.components.SectionHeader
-import com.poodicraft.bookquest.ui.theme.Brand
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -96,10 +89,7 @@ fun SettingsScreen(
     }
 
     if (showRole) {
-        RoleScreen(
-            onDone = { showRole = false },
-            onSkip = { showRole = false }
-        )
+        ProfileScreen(onBack = { showRole = false })
         return
     }
 
@@ -264,6 +254,8 @@ private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val cloud = remember { CloudSync.get(context) }
+    val classroom = remember { Classroom.get(context) }
+    val school by classroom.profile.collectAsStateWithLifecycle()
     val account by cloud.account.collectAsStateWithLifecycle()
     val sync by cloud.sync.collectAsStateWithLifecycle()
     var busy by remember { mutableStateOf(false) }
@@ -315,26 +307,17 @@ private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
 
                 is AccountState.SignedIn -> {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(46.dp)
-                                .clip(RoundedCornerShape(23.dp))
-                                .background(
-                                    Brush.linearGradient(listOf(Brand.Violet, Brand.Sky))
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = state.name.take(1).uppercase().ifBlank { "?" },
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        ProfileAvatar(
+                            photo = school.photo,
+                            name = school.displayName.ifBlank { state.name },
+                            size = 52.dp
+                        )
                         Spacer(Modifier.padding(horizontal = 7.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = state.name.ifBlank { state.email },
+                                text = school.displayName
+                                    .ifBlank { state.name }
+                                    .ifBlank { state.email },
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -373,6 +356,15 @@ private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
                         color = if (sync is SyncState.Failed) MaterialTheme.colorScheme.error
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    if (school.bio.isNotBlank()) {
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = school.bio,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
 
                     Spacer(Modifier.height(6.dp))
                     TextButton(onClick = onEditDetails) {

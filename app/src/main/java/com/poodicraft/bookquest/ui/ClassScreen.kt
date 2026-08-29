@@ -20,15 +20,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -148,6 +152,42 @@ fun ClassScreen(
     }
 }
 
+/**
+ * Removing a class is the one action here that cannot be undone, so it always
+ * goes through this. [confirmRes] carries the class name, so the dialog names
+ * what is about to go rather than asking "are you sure?" about nothing.
+ */
+@Composable
+private fun RemoveClassDialog(
+    schoolClass: SchoolClass,
+    titleRes: Int,
+    confirmRes: Int,
+    actionRes: Int,
+    busy: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        icon = { Text(text = "\u26A0\uFE0F", fontSize = 28.sp) },
+        title = { Text(stringResource(titleRes)) },
+        text = { Text(stringResource(confirmRes, schoolClass.name)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = !busy) {
+                Text(
+                    text = stringResource(actionRes),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !busy) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
 // ------------------------------------------------------------------ teacher
 
 @Composable
@@ -161,7 +201,31 @@ private fun TeacherClasses(
     var creating by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
+    var pendingRemoval by remember { mutableStateOf<SchoolClass?>(null) }
     val scope = rememberCoroutineScope()
+
+    val removing = pendingRemoval
+    if (removing != null) {
+        RemoveClassDialog(
+            schoolClass = removing,
+            titleRes = R.string.delete_class,
+            confirmRes = R.string.delete_class_confirm,
+            actionRes = R.string.delete,
+            busy = busy,
+            onDismiss = { pendingRemoval = null },
+            onConfirm = {
+                if (!busy) {
+                    busy = true
+                    scope.launch {
+                        classroom.deleteClass(removing.id)
+                        busy = false
+                        pendingRemoval = null
+                        onChanged()
+                    }
+                }
+            }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -253,13 +317,21 @@ private fun TeacherClasses(
         }
 
         items(classes, key = { it.id }) { schoolClass ->
-            ClassRow(schoolClass = schoolClass, onClick = { onOpenClass(schoolClass.id) })
+            ClassRow(
+                schoolClass = schoolClass,
+                onClick = { onOpenClass(schoolClass.id) },
+                onRemove = { pendingRemoval = schoolClass }
+            )
         }
     }
 }
 
 @Composable
-private fun ClassRow(schoolClass: SchoolClass, onClick: () -> Unit) {
+private fun ClassRow(
+    schoolClass: SchoolClass,
+    onClick: () -> Unit,
+    onRemove: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -303,6 +375,13 @@ private fun ClassRow(schoolClass: SchoolClass, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
+            IconButton(onClick = onRemove) {
+                Icon(
+                    Icons.Rounded.DeleteOutline,
+                    contentDescription = stringResource(R.string.delete_class),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -321,7 +400,31 @@ private fun StudentClasses(
     var code by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var codeError by remember { mutableStateOf(false) }
+    var pendingLeave by remember { mutableStateOf<SchoolClass?>(null) }
     val scope = rememberCoroutineScope()
+
+    val leaving = pendingLeave
+    if (leaving != null) {
+        RemoveClassDialog(
+            schoolClass = leaving,
+            titleRes = R.string.leave_class,
+            confirmRes = R.string.leave_class_confirm,
+            actionRes = R.string.leave_action,
+            busy = busy,
+            onDismiss = { pendingLeave = null },
+            onConfirm = {
+                if (!busy) {
+                    busy = true
+                    scope.launch {
+                        classroom.leaveClass(leaving.id)
+                        busy = false
+                        pendingLeave = null
+                        onJoined()
+                    }
+                }
+            }
+        )
+    }
 
     var assignments by remember { mutableStateOf<Map<String, List<Assignment>>>(emptyMap()) }
     LaunchedEffect(classes) {
@@ -426,14 +529,27 @@ private fun StudentClasses(
 
         for (schoolClass in classes) {
             item(key = "head-" + schoolClass.id) {
-                Column(modifier = Modifier.clickable { onOpenClass(schoolClass.id) }) {
-                    SectionHeader(title = schoolClass.name + "  ›")
-                    if (schoolClass.teacherName.isNotBlank()) {
-                        Text(
-                            text = stringResource(R.string.teacher_label) + ": " +
-                                schoolClass.teacherName,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onOpenClass(schoolClass.id) }
+                    ) {
+                        SectionHeader(title = schoolClass.name + "  ›")
+                        if (schoolClass.teacherName.isNotBlank()) {
+                            Text(
+                                text = stringResource(R.string.teacher_label) + ": " +
+                                    schoolClass.teacherName,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    IconButton(onClick = { pendingLeave = schoolClass }) {
+                        Icon(
+                            Icons.Rounded.DeleteOutline,
+                            contentDescription = stringResource(R.string.leave_class),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

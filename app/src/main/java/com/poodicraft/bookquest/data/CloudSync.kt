@@ -7,6 +7,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
@@ -195,6 +196,50 @@ class CloudSync private constructor(
         }
     }
 
+    /**
+     * True when this account signs in with a password at all. Accounts that
+     * arrived through Google have no password to change, so the setting is
+     * hidden rather than offered and then refused.
+     */
+    val hasPassword: Boolean
+        get() = auth?.currentUser?.providerData
+            ?.any { it.providerId == EmailAuthProvider.PROVIDER_ID } == true
+
+    /**
+     * Changes the account password. Firebase only allows this on a recent sign
+     * in, so the current password is asked for and used to re-authenticate
+     * first: that both satisfies Firebase and stops someone changing the
+     * password on a phone that was left unlocked.
+     */
+    suspend fun changePassword(current: String, replacement: String): Result<Unit> {
+        val user = auth?.currentUser ?: return Result.failure(NotSignedIn())
+        val email = user.email
+        if (email.isNullOrBlank() || !hasPassword) return Result.failure(NoPassword())
+        return try {
+            user.reauthenticate(EmailAuthProvider.getCredential(email, current)).await()
+            user.updatePassword(replacement).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /** Puts the name from the profile editor onto the Firebase account itself. */
+    suspend fun updateDisplayName(name: String): Result<Unit> {
+        val user = auth?.currentUser ?: return Result.failure(NotSignedIn())
+        return try {
+            user.updateProfile(
+                com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                    .setDisplayName(name.trim())
+                    .build()
+            ).await()
+            refresh()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     /** Emails a password reset link. */
     suspend fun sendPasswordReset(email: String): Result<Unit> {
         val firebaseAuth = auth ?: return Result.failure(CloudNotConfigured())
@@ -267,6 +312,7 @@ class CloudSync private constructor(
     class CloudNotConfigured : Exception("Google sign in is not configured in this build")
     class NotSignedIn : Exception("No account is signed in")
     class SignInCancelled : Exception("Sign in was cancelled")
+    class NoPassword : Exception("This account does not sign in with a password")
 
     companion object {
         @Volatile

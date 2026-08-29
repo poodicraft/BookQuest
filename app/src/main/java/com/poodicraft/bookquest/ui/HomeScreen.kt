@@ -27,19 +27,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.poodicraft.bookquest.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poodicraft.bookquest.data.Book
+import com.poodicraft.bookquest.data.Classroom
 import com.poodicraft.bookquest.data.Profile
 import com.poodicraft.bookquest.ui.components.BookCoverArt
 import com.poodicraft.bookquest.ui.components.EmptyState
@@ -60,13 +65,22 @@ fun HomeScreen(
     onImport: () -> Unit,
     onSeeLibrary: () -> Unit
 ) {
+    val context = LocalContext.current
+    val school by remember { Classroom.get(context) }.profile.collectAsStateWithLifecycle()
+
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greetingRes = when {
         hour < 12 -> R.string.greeting_morning
         hour < 18 -> R.string.greeting_afternoon
         else -> R.string.greeting_evening
     }
-    val tips = listOf(R.string.tip_1, R.string.tip_2, R.string.tip_3, R.string.tip_4, R.string.tip_5)
+    // A teacher is not being coached to read more; theirs are about running the
+    // class, so the two sets are kept apart rather than shared and softened.
+    val tips = if (isTeacher) {
+        listOf(R.string.tip_t1, R.string.tip_t2, R.string.tip_t3, R.string.tip_t4, R.string.tip_t5)
+    } else {
+        listOf(R.string.tip_1, R.string.tip_2, R.string.tip_3, R.string.tip_4, R.string.tip_5)
+    }
     val tip = tips[Calendar.getInstance().get(Calendar.DAY_OF_YEAR) % tips.size]
 
     val inProgress = books.filter { it.started && !it.finished }.sortedByDescending { it.addedAt }
@@ -78,17 +92,23 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            Column {
-                Text(
-                    text = stringResource(greetingRes),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(greetingRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = school.displayName.ifBlank { stringResource(R.string.app_name) },
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                ProfileAvatar(photo = school.photo, name = school.displayName, size = 54.dp)
             }
         }
 

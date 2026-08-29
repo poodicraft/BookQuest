@@ -135,6 +135,11 @@ Go back to *Firestore Database → Rules*, select everything in the box, paste
 this in its place, and publish. This set is complete — it still contains the
 per-student rule from step 4, so nothing is lost by replacing.
 
+It is also the set a teacher needs in order to delete a class: deleting one
+clears the work, messages, hand-ins and roster filed under it, and each of
+those needs its own permission. If you last pasted these rules before version
+1.9, paste them again.
+
 ```
 rules_version = '2';
 service cloud.firestore {
@@ -187,6 +192,9 @@ service cloud.firestore {
           allow create, update: if request.auth != null
                        && (request.auth.uid == studentId
                            || teacherOf(database, classId) == request.auth.uid);
+          // Deleting a class clears what is filed under it.
+          allow delete: if request.auth != null
+                       && teacherOf(database, classId) == request.auth.uid;
         }
       }
 
@@ -194,6 +202,8 @@ service cloud.firestore {
         allow read: if request.auth != null;
         allow create, update: if request.auth != null
                      && request.resource.data.studentUid == request.auth.uid;
+        allow delete: if request.auth != null
+                     && teacherOf(database, classId) == request.auth.uid;
       }
     }
   }

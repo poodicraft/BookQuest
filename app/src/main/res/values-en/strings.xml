@@ -329,4 +329,35 @@
     <string name="teacher_home_hint">Open the Class tab to post to a class, set work and check what has been handed in.</string>
     <string name="teacher_classes_count">%1$d classes</string>
     <string name="go_to_classes">Go to my classes</string>
+
+    <!-- profile editor -->
+    <string name="profile_title">My profile</string>
+    <string name="profile_picture">Profile picture</string>
+    <string name="change_picture">Choose a picture</string>
+    <string name="remove_picture">Remove the picture</string>
+    <string name="picture_too_big">That picture is too large. Try a smaller one.</string>
+    <string name="your_bio">About me</string>
+    <string name="bio_hint">What you like reading, what you teach, anything.</string>
+    <string name="save_changes">Save</string>
+    <string name="profile_saved">Profile saved</string>
+    <string name="change_password">Change password</string>
+    <string name="current_password">Current password</string>
+    <string name="new_password">New password</string>
+    <string name="confirm_password">Confirm the new password</string>
+    <string name="password_changed">Password changed</string>
+    <string name="passwords_dont_match">The two passwords do not match</string>
+    <string name="password_google_note">You signed in with Google, so your password lives in your Google account.</string>
+    <!-- removing a class -->
+    <string name="delete_class">Delete the class</string>
+    <string name="delete_class_confirm">Delete %1$s? All of its work, messages and hand-ins go with it, and this cannot be undone.</string>
+    <string name="leave_class">Leave the class</string>
+    <string name="leave_class_confirm">Leave %1$s? Its work will stop appearing. You can join again with the code.</string>
+    <string name="leave_action">Leave</string>
+    <string name="class_removed">Class removed</string>
+    <!-- tips for teachers -->
+    <string name="tip_t1">A class wakes up when something is posted in it. One short question in the stream beats a long notice.</string>
+    <string name="tip_t2">Give homework a due date and you can see at a glance who has handed in and who has not.</string>
+    <string name="tip_t3">A five question quiz after each chapter shows you what actually landed.</string>
+    <string name="tip_t4">Attach the file itself to the work, so students read it in the app instead of hunting for it.</string>
+    <string name="tip_t5">Write a sentence back on every hand-in. Students read a personal comment long before a mark.</string>
 </resources>

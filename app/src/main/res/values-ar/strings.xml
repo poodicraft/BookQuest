@@ -329,4 +329,35 @@
     <string name="teacher_home_hint">من تبويب الصف يمكنك النشر للصف وتحديد المهام ومراجعة ما سلم.</string>
     <string name="teacher_classes_count">%1$d صفوف</string>
     <string name="go_to_classes">إلى صفوفي</string>
+
+    <!-- profile editor -->
+    <string name="profile_title">ملفي الشخصي</string>
+    <string name="profile_picture">صورة الملف الشخصي</string>
+    <string name="change_picture">اختر صورة</string>
+    <string name="remove_picture">إزالة الصورة</string>
+    <string name="picture_too_big">هذه الصورة كبيرة جدا. جرب صورة أصغر.</string>
+    <string name="your_bio">نبذة عني</string>
+    <string name="bio_hint">ما تحب قراءته، ما تدرسه، أي شيء.</string>
+    <string name="save_changes">حفظ</string>
+    <string name="profile_saved">تم حفظ الملف الشخصي</string>
+    <string name="change_password">تغيير كلمة المرور</string>
+    <string name="current_password">كلمة المرور الحالية</string>
+    <string name="new_password">كلمة مرور جديدة</string>
+    <string name="confirm_password">تأكيد كلمة المرور الجديدة</string>
+    <string name="password_changed">تم تغيير كلمة المرور</string>
+    <string name="passwords_dont_match">كلمتا المرور غير متطابقتين</string>
+    <string name="password_google_note">لقد دخلت عبر جوجل، لذلك كلمة المرور موجودة في حساب جوجل الخاص بك.</string>
+    <!-- removing a class -->
+    <string name="delete_class">حذف الصف</string>
+    <string name="delete_class_confirm">هل تريد حذف %1$s? ستحذف معه كل المهام والرسائل والتسليمات، ولا يمكن التراجع.</string>
+    <string name="leave_class">مغادرة الصف</string>
+    <string name="leave_class_confirm">هل تريد مغادرة %1$s? لن تظهر مهامه بعد الآن. يمكنك الانضمام مجددا بالرمز.</string>
+    <string name="leave_action">مغادرة</string>
+    <string name="class_removed">تمت إزالة الصف</string>
+    <!-- tips for teachers -->
+    <string name="tip_t1">يستيقظ الصف حين تنشر فيه شيئا. سؤال قصير في التدفق أفضل من إعلان طويل.</string>
+    <string name="tip_t2">ضع موعدا لتسليم الواجب لترى فورا من سلم ومن لم يسلم.</string>
+    <string name="tip_t3">اختبار من خمسة أسئلة بعد كل فصل يكشف ما وصل فعلا.</string>
+    <string name="tip_t4">أرفق الملف نفسه بالمهمة ليقرأه الطلاب في التطبيق بدل البحث عنه.</string>
+    <string name="tip_t5">اكتب جملة على كل تسليم. يقرأ الطالب التعليق الشخصي قبل العلامة بكثير.</string>
 </resources>

@@ -329,4 +329,35 @@
     <string name="teacher_home_hint">בלשונית הכיתה אפשר לפרסם לכיתה, לתת משימות ולבדוק מה הוגש.</string>
     <string name="teacher_classes_count">%1$d כיתות</string>
     <string name="go_to_classes">אל הכיתות שלי</string>
+
+    <!-- profile editor -->
+    <string name="profile_title">הפרופיל שלי</string>
+    <string name="profile_picture">תמונת פרופיל</string>
+    <string name="change_picture">בחירת תמונה</string>
+    <string name="remove_picture">הסרת התמונה</string>
+    <string name="picture_too_big">התמונה הזאת גדולה מדי. נסו תמונה קטנה יותר.</string>
+    <string name="your_bio">קצת עליי</string>
+    <string name="bio_hint">מה אני אוהב לקרוא, מה אני מלמד, כל דבר.</string>
+    <string name="save_changes">שמירה</string>
+    <string name="profile_saved">הפרופיל נשמר</string>
+    <string name="change_password">שינוי סיסמה</string>
+    <string name="current_password">הסיסמה הנוכחית</string>
+    <string name="new_password">סיסמה חדשה</string>
+    <string name="confirm_password">אישור הסיסמה החדשה</string>
+    <string name="password_changed">הסיסמה שונתה</string>
+    <string name="passwords_dont_match">שתי הסיסמאות אינן זהות</string>
+    <string name="password_google_note">נכנסתם עם גוגל, ולכן הסיסמה מנוהלת בחשבון הגוגל שלכם.</string>
+    <!-- removing a class -->
+    <string name="delete_class">מחיקת הכיתה</string>
+    <string name="delete_class_confirm">למחוק את %1$s? כל המשימות, ההודעות וההגשות של הכיתה יימחקו, ולא ניתן לבטל את זה.</string>
+    <string name="leave_class">יציאה מהכיתה</string>
+    <string name="leave_class_confirm">לצאת מהכיתה %1$s? המשימות שלה לא יופיעו יותר. אפשר להצטרף שוב עם הקוד.</string>
+    <string name="leave_action">יציאה</string>
+    <string name="class_removed">הכיתה הוסרה</string>
+    <!-- tips for teachers -->
+    <string name="tip_t1">כיתה מתעוררת כשמפרסמים בה משהו. שאלה קצרה בזרם שווה יותר מהודעה ארוכה.</string>
+    <string name="tip_t2">שיעורי בית עם תאריך הגשה מראים לכם מיד מי הגיש ומי לא.</string>
+    <string name="tip_t3">בוחן קצר של חמש שאלות אחרי כל פרק מגלה מה באמת נקלט.</string>
+    <string name="tip_t4">מצרפים את הקובץ עצמו למשימה, כדי שהתלמידים יקראו אותו באפליקציה בלי לחפש.</string>
+    <string name="tip_t5">כותבים משפט משוב לכל הגשה. תלמיד קורא משוב אישי הרבה לפני ציון.</string>
 </resources>

@@ -30,6 +30,10 @@ data class SchoolProfile(
     val displayName: String = "",
     val school: String = "",
     val subject: String = "",
+    /** A line or two the account writes about itself. */
+    val bio: String = "",
+    /** A small square JPEG, base64 encoded, or blank for no picture. */
+    val photo: String = "",
     val classIds: List<String> = emptyList()
 )
 
@@ -206,6 +210,8 @@ class Classroom private constructor(private val appContext: Context) {
                     ?: current.displayName.ifBlank { auth?.currentUser?.displayName.orEmpty() },
                 school = snapshot.getString("school") ?: current.school,
                 subject = snapshot.getString("subject") ?: current.subject,
+                bio = snapshot.getString("bio") ?: current.bio,
+                photo = snapshot.getString("photo") ?: current.photo,
                 classIds = (ids?.mapNotNull { it as? String } ?: emptyList())
                     .plus(current.classIds)
                     .distinct()
@@ -237,29 +243,41 @@ class Classroom private constructor(private val appContext: Context) {
         cache.edit().clear().apply()
     }
 
+    /**
+     * Writes the parts of the profile that were passed. A null field is left
+     * exactly as it is, so the sign in questionnaire and the profile editor can
+     * both call this without one of them blanking what the other owns.
+     */
     suspend fun saveProfile(
         role: UserRole,
         displayName: String,
         school: String,
-        subject: String
+        subject: String,
+        bio: String? = null,
+        photo: String? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val id = uid ?: return@withContext Result.failure(NotSignedIn())
         val store = db ?: return@withContext Result.failure(NotSignedIn())
         try {
+            val fields = mutableMapOf<String, Any>(
+                "role" to role.id,
+                "name" to displayName.trim(),
+                "school" to school.trim(),
+                "subject" to subject.trim()
+            )
+            if (bio != null) fields["bio"] = bio.trim()
+            if (photo != null) fields["photo"] = photo
             store.collection("users").document(id).set(
-                mapOf(
-                    "role" to role.id,
-                    "name" to displayName.trim(),
-                    "school" to school.trim(),
-                    "subject" to subject.trim()
-                ),
+                fields,
                 com.google.firebase.firestore.SetOptions.merge()
             ).await()
             val updated = _profile.value.copy(
                 role = role,
                 displayName = displayName.trim(),
                 school = school.trim(),
-                subject = subject.trim()
+                subject = subject.trim(),
+                bio = bio?.trim() ?: _profile.value.bio,
+                photo = photo ?: _profile.value.photo
             )
             _profile.value = updated
             writeCachedProfile(updated)
@@ -388,6 +406,108 @@ class Classroom private constructor(private val appContext: Context) {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /**
+     * Deletes a class the signed in teacher owns, along with everything filed
+     * under it.
+     *
+     * Firestore has no recursive delete on the client, so the subcollections are
+     * cleared first and the class document last. Doing it in that order means a
+     * half finished delete leaves the class still reachable rather than leaving
+     * orphaned work nobody can see or remove.
+     */
+    suspend fun deleteClass(classId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val id = uid ?: return@withContext Result.failure(NotSignedIn())
+        val store = db ?: return@withContext Result.failure(NotSignedIn())
+        try {
+            val classDoc = store.collection("classes").document(classId)
+            val snapshot = classDoc.get().await()
+            if (snapshot.getString("teacherUid") != id) {
+                return@withContext Result.failure(NotYours())
+            }
+            // Hand-ins hang off each assignment, so they have to go before the
+            // assignment they belong to, or nothing can reach them again.
+            try {
+                for (assignment in classDoc.collection("assignments").get().await().documents) {
+                    try {
+                        val handIns = assignment.reference.collection("submissions")
+                            .get().await().documents
+                        for (handIn in handIns) handIn.reference.delete().await()
+                    } catch (e: Exception) {
+                        // Keep going; the assignment itself still gets removed.
+                    }
+                    assignment.reference.delete().await()
+                }
+            } catch (e: Exception) {
+                // Carry on to the rest rather than stranding the whole class.
+            }
+
+            for (name in listOf("results", "posts", "members")) {
+                try {
+                    val documents = classDoc.collection(name).get().await().documents
+                    for (document in documents) document.reference.delete().await()
+                } catch (e: Exception) {
+                    // Same again: one stubborn subcollection is not a reason to
+                    // leave the class itself in place.
+                }
+            }
+
+            // The class document goes last. The security rules check ownership by
+            // reading it, so deleting it first would lock everything underneath.
+            classDoc.delete().await()
+            _classes.value = _classes.value.filterNot { it.id == classId }
+            writeCachedClasses(_classes.value)
+            forgetClassId(store, id, classId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Takes the signed in student off a class. The class itself is the teacher's
+     * and is left alone; only the roster entry and the local link go.
+     */
+    suspend fun leaveClass(classId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val id = uid ?: return@withContext Result.failure(NotSignedIn())
+        val store = db ?: return@withContext Result.failure(NotSignedIn())
+        try {
+            try {
+                store.collection("classes").document(classId)
+                    .collection("members").document(id)
+                    .delete().await()
+            } catch (e: Exception) {
+                // Already gone, or no longer readable. Either way, drop the link.
+            }
+            forgetClassId(store, id, classId)
+            _classes.value = _classes.value.filterNot { it.id == classId }
+            writeCachedClasses(_classes.value)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /** Removes one class id from the account document and the cached profile. */
+    private suspend fun forgetClassId(
+        store: FirebaseFirestore,
+        userId: String,
+        classId: String
+    ) {
+        try {
+            store.collection("users").document(userId).set(
+                mapOf("classIds" to FieldValue.arrayRemove(classId)),
+                com.google.firebase.firestore.SetOptions.merge()
+            ).await()
+        } catch (e: Exception) {
+            // The local copy below is what the screens read from.
+        }
+        val updated = _profile.value.copy(
+            classIds = _profile.value.classIds.filterNot { it == classId }
+        )
+        _profile.value = updated
+        writeCachedProfile(updated)
     }
 
     suspend fun members(classId: String): Result<List<ClassMember>> = withContext(Dispatchers.IO) {
@@ -830,6 +950,8 @@ class Classroom private constructor(private val appContext: Context) {
         displayName = cache.getString("name", "").orEmpty(),
         school = cache.getString("school", "").orEmpty(),
         subject = cache.getString("subject", "").orEmpty(),
+        bio = cache.getString("bio", "").orEmpty(),
+        photo = cache.getString("photo", "").orEmpty(),
         classIds = cache.getString("classIds", "").orEmpty()
             .split(",").filter { it.isNotBlank() }
     )
@@ -840,6 +962,8 @@ class Classroom private constructor(private val appContext: Context) {
             .putString("name", value.displayName)
             .putString("school", value.school)
             .putString("subject", value.subject)
+            .putString("bio", value.bio)
+            .putString("photo", value.photo)
             .putString("classIds", value.classIds.joinToString(","))
             .apply()
     }
@@ -885,6 +1009,7 @@ class Classroom private constructor(private val appContext: Context) {
 
     class NotSignedIn : Exception("No account is signed in")
     class BadCode : Exception("No class has that code")
+    class NotYours : Exception("That class belongs to another teacher")
     class EmptyName : Exception("A name is required")
 
     companion object {

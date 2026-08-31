@@ -36,6 +36,7 @@ always tell which build is on the phone.
 
 | Version | What changed |
 | --- | --- |
+| 2.2 (13) | Fix "LocalLifecycleOwner not present": the lifecycle library and Compose UI now agree on which one to read |
 | 2.1 (12) | Notifications settings for everyone, asked once on a first run; no more teacher-or-student flash at launch; deleting an account now proves who you are first |
 | 2.0 (11) | Launch screen, daily reading reminder, offline banner, export and import, About with privacy policy and licences, delete your account, crash reports |
 | 1.9 (10) | Remove a class with a confirmation, a full profile editor with picture and bio, teacher tips |

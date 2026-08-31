@@ -18,8 +18,8 @@ android {
         applicationId = "com.poodicraft.bookquest"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "2.1"
+        versionCode = 13
+        versionName = "2.2"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -88,8 +88,21 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
+    // Pinned to 2.7.0 deliberately, and it must stay in step with the Compose
+    // BOM below.
+    //
+    // Lifecycle 2.8 introduced its own androidx.lifecycle.compose.LocalLifecycleOwner,
+    // separate from the androidx.compose.ui.platform one, and only Compose UI
+    // 1.7 onwards provides it. The BOM here is Compose UI 1.6.8, so every
+    // collectAsStateWithLifecycle was reading a composition local that nothing
+    // had ever supplied — "CompositionLocal LocalLifecycleOwner not present".
+    // 2.7.0 reads the Compose UI one, which 1.6.8 does provide.
+    //
+    // Moving to lifecycle 2.8 again means Compose UI 1.7+, which means
+    // compileSdk 35 and a newer Android Gradle plugin. All four move together
+    // or none of them do.
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.documentfile:documentfile:1.0.1")
     // Draws the launch screen before any of our code runs, so tapping the icon
     // does not open on a blank rectangle.

@@ -158,6 +158,18 @@ class Classroom private constructor(private val appContext: Context) {
     private val _classes = MutableStateFlow(readCachedClasses())
     val classes: StateFlow<List<SchoolClass>> = _classes.asStateFlow()
 
+    /**
+     * Whether the role in [profile] can be trusted yet.
+     *
+     * A cached role is an answer straight away. Without one the answer is only
+     * known after the account document has been read, and until then the role
+     * reads as UNKNOWN — which is indistinguishable from "this person has never
+     * chosen". Asking on the strength of that is what made the teacher-or-student
+     * screen flash past on every launch.
+     */
+    private val _ready = MutableStateFlow(readCachedProfile().role != UserRole.UNKNOWN)
+    val ready: StateFlow<Boolean> = _ready.asStateFlow()
+
     private var loadedOnce = false
 
     private val auth: FirebaseAuth?
@@ -188,8 +200,15 @@ class Classroom private constructor(private val appContext: Context) {
     suspend fun ensureLoaded(force: Boolean = false) {
         if (loadedOnce && !force) return
         loadedOnce = true
-        loadProfile()
-        refreshClasses()
+        try {
+            loadProfile()
+            refreshClasses()
+        } finally {
+            // Ready either way. A read that failed still settles the question as
+            // far as the screens are concerned: waiting longer would only hold
+            // the app on a spinner it can never leave.
+            _ready.value = true
+        }
     }
 
     suspend fun loadProfile(): SchoolProfile = withContext(Dispatchers.IO) {
@@ -238,6 +257,7 @@ class Classroom private constructor(private val appContext: Context) {
     /** Forgets everything about this account, for sign out. */
     fun clear() {
         loadedOnce = false
+        _ready.value = false
         _profile.value = SchoolProfile()
         _classes.value = emptyList()
         cache.edit().clear().apply()
@@ -281,6 +301,7 @@ class Classroom private constructor(private val appContext: Context) {
             )
             _profile.value = updated
             writeCachedProfile(updated)
+            if (role != UserRole.UNKNOWN) _ready.value = true
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

@@ -1,10 +1,7 @@
 package com.poodicraft.bookquest.ui
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,13 +25,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,7 +41,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poodicraft.bookquest.BuildConfig
 import com.poodicraft.bookquest.R
@@ -54,8 +48,9 @@ import com.poodicraft.bookquest.data.AccountState
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.poodicraft.bookquest.data.Classroom
-import com.poodicraft.bookquest.data.Prefs
-import com.poodicraft.bookquest.data.Reminders
+import android.app.Activity
+import android.content.ContextWrapper
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.poodicraft.bookquest.data.CloudSync
 import com.poodicraft.bookquest.data.LibraryRepository
 import com.poodicraft.bookquest.data.Profile
@@ -92,12 +87,11 @@ fun SettingsScreen(
     // A daily reading goal belongs to the reader, not to whoever set the work.
     val isTeacher = schoolProfile.role == UserRole.TEACHER
 
-    val prefs = remember { Prefs(context) }
-
     var goal by remember { mutableFloatStateOf(profile.dailyGoal.toFloat()) }
     var showSignIn by remember { mutableStateOf(false) }
     var showRole by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+    var showNotifications by remember { mutableStateOf(false) }
 
     if (showSignIn) {
         AuthScreen(
@@ -114,6 +108,11 @@ fun SettingsScreen(
 
     if (showAbout) {
         AboutScreen(onBack = { showAbout = false })
+        return
+    }
+
+    if (showNotifications) {
+        NotificationsScreen(onBack = { showNotifications = false })
         return
     }
 
@@ -225,9 +224,14 @@ fun SettingsScreen(
             }
         }
 
-        if (!isTeacher) {
-            item { SectionHeader(title = "⏰ " + stringResource(R.string.reminder_section)) }
-            item { ReminderCard(prefs = prefs) }
+        item { SectionHeader(title = "🔔 " + stringResource(R.string.notifications)) }
+
+        item {
+            LinkRow(
+                emoji = "🔔",
+                label = stringResource(R.string.notifications),
+                onClick = { showNotifications = true }
+            )
         }
 
         item { SectionHeader(title = "💾 " + stringResource(R.string.your_data)) }
@@ -236,28 +240,11 @@ fun SettingsScreen(
         item { SectionHeader(title = "ℹ️ " + stringResource(R.string.about)) }
 
         item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showAbout = true },
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "ℹ️  " + stringResource(R.string.about_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(text = "›", style = MaterialTheme.typography.titleLarge)
-                }
-            }
+            LinkRow(
+                emoji = "ℹ️",
+                label = stringResource(R.string.about_title),
+                onClick = { showAbout = true }
+            )
         }
 
         item {
@@ -305,130 +292,6 @@ fun SettingsScreen(
         }
     }
 }
-
-/**
- * The daily reading nudge.
- *
- * The notification permission is asked for at the moment the switch is turned
- * on and never at launch: a permission dialog before anyone has seen what the
- * app does is the fastest way to have it refused for good.
- */
-@Composable
-private fun ReminderCard(prefs: Prefs) {
-    val context = LocalContext.current
-    var on by remember { mutableStateOf(prefs.reminderOn) }
-    var hour by remember { mutableIntStateOf(prefs.reminderHour) }
-    var minute by remember { mutableIntStateOf(prefs.reminderMinute) }
-    var refused by remember { mutableStateOf(false) }
-
-    val askPermission = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        refused = !granted
-        if (granted) {
-            on = true
-            prefs.reminderOn = true
-            Reminders.schedule(context, hour, minute)
-        }
-    }
-
-    fun switchOn() {
-        refused = false
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            return
-        }
-        on = true
-        prefs.reminderOn = true
-        Reminders.schedule(context, hour, minute)
-    }
-
-    Card(
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.reminder_switch),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.reminder_at, clockText(hour, minute)),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Switch(
-                    checked = on,
-                    onCheckedChange = { wanted ->
-                        if (wanted) {
-                            switchOn()
-                        } else {
-                            on = false
-                            prefs.reminderOn = false
-                            Reminders.cancel(context)
-                        }
-                    }
-                )
-            }
-
-            if (refused) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.reminder_blocked),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-
-            if (on) {
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    text = stringResource(R.string.hour_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Slider(
-                    value = hour.toFloat(),
-                    onValueChange = { hour = it.toInt() },
-                    onValueChangeFinished = {
-                        prefs.reminderHour = hour
-                        Reminders.schedule(context, hour, minute)
-                    },
-                    valueRange = 0f..23f,
-                    steps = 22
-                )
-                Text(
-                    text = stringResource(R.string.minute_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Slider(
-                    value = minute.toFloat(),
-                    onValueChange = { minute = (it / 5).toInt() * 5 },
-                    onValueChangeFinished = {
-                        prefs.reminderMinute = minute
-                        Reminders.schedule(context, hour, minute)
-                    },
-                    valueRange = 0f..55f,
-                    steps = 10
-                )
-            }
-        }
-    }
-}
-
-/** 24 hour clock, zero padded, so 9:05 does not read as 9:5. */
-private fun clockText(hour: Int, minute: Int): String =
-    String.format(Locale.US, "%02d:%02d", hour, minute)
 
 /**
  * Export and import.
@@ -548,6 +411,33 @@ private suspend fun readSnapshot(context: Context, uri: Uri): String? =
         }
     }
 
+/** A settings row that opens another screen. */
+@Composable
+private fun LinkRow(emoji: String, label: String, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$emoji  $label",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Text(text = "\u203A", style = MaterialTheme.typography.titleLarge)
+        }
+    }
+}
+
 @Composable
 private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
     val context = LocalContext.current
@@ -560,6 +450,7 @@ private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
     var busy by remember { mutableStateOf(false) }
     var confirmSignOut by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var confirmIdentity by remember { mutableStateOf(false) }
     var deleteFailed by remember { mutableStateOf(false) }
 
     if (confirmSignOut) {
@@ -588,6 +479,20 @@ private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
             busy = busy,
             onDismiss = { confirmDelete = false },
             onConfirm = {
+                // Typing the word says you meant to. Proving who you are is a
+                // separate question, and it is asked next.
+                confirmDelete = false
+                confirmIdentity = true
+            }
+        )
+    }
+
+    if (confirmIdentity) {
+        ConfirmIdentityDialog(
+            cloud = cloud,
+            busy = busy,
+            onDismiss = { confirmIdentity = false },
+            onConfirmed = {
                 busy = true
                 deleteFailed = false
                 scope.launch {
@@ -596,7 +501,7 @@ private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
                     classroom.leaveEverything()
                     val result = cloud.deleteAccount()
                     busy = false
-                    confirmDelete = false
+                    confirmIdentity = false
                     if (result.isFailure) deleteFailed = true
                 }
             }
@@ -764,6 +669,109 @@ private fun AccountCard(onSignIn: () -> Unit, onEditDetails: () -> Unit) {
 }
 
 /**
+ * The second half of deleting an account: proving it is you.
+ *
+ * A password account types its password. A Google account signs in with Google
+ * again — Google's own chooser appears, and Firebase rejects a credential for
+ * any other account, so picking the right one out of it is the proof. There is
+ * no emailed code because sending mail needs a mail server this app does not
+ * have, and Firebase offers no code of its own; re-authenticating is the same
+ * assurance by the route Google actually supports.
+ */
+@Composable
+private fun ConfirmIdentityDialog(
+    cloud: CloudSync,
+    busy: Boolean,
+    onDismiss: () -> Unit,
+    onConfirmed: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val google = remember { cloud.signsInWithGoogle }
+
+    var password by remember { mutableStateOf("") }
+    var checking by remember { mutableStateOf(false) }
+    var errorRes by remember { mutableStateOf<Int?>(null) }
+    val working = busy || checking
+
+    fun confirmWithGoogle() {
+        val activity = context.findActivity() ?: return
+        checking = true
+        errorRes = null
+        scope.launch {
+            val result = cloud.reauthenticateWithGoogle(activity)
+            checking = false
+            if (result.isSuccess) onConfirmed()
+            else errorRes = authErrorMessage(result.exceptionOrNull())
+        }
+    }
+
+    fun confirmWithPassword() {
+        if (password.isBlank()) return
+        checking = true
+        errorRes = null
+        scope.launch {
+            val result = cloud.reauthenticateWithPassword(password)
+            checking = false
+            if (result.isSuccess) onConfirmed()
+            else errorRes = authErrorMessage(result.exceptionOrNull())
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = { if (!working) onDismiss() },
+        icon = { Text(text = "\uD83D\uDD10", fontSize = 28.sp) },
+        title = { Text(stringResource(R.string.confirm_its_you)) },
+        text = {
+            Column {
+                Text(
+                    text = if (google) stringResource(R.string.confirm_google_body)
+                    else stringResource(R.string.confirm_password_body)
+                )
+                if (!google) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it; errorRes = null },
+                        label = { Text(stringResource(R.string.password_label)) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                val message = errorRes
+                if (message != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(message),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (google) confirmWithGoogle() else confirmWithPassword() },
+                enabled = !working && (google || password.isNotBlank())
+            ) {
+                Text(
+                    text = if (google) stringResource(R.string.reauth_google)
+                    else stringResource(R.string.delete_account),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !working) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+/**
  * Deleting an account is not undoable and not recoverable, so it asks for the
  * word to be typed rather than for one more tap. A tap is something a phone in
  * a pocket can do; typing is not.
@@ -816,4 +824,14 @@ private fun DeleteAccountDialog(
             }
         }
     )
+}
+
+/** Unwraps whatever Compose handed us until the Activity underneath turns up. */
+private fun Context.findActivity(): Activity? {
+    var current: Context? = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
 }

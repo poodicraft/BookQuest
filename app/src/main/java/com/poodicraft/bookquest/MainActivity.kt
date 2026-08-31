@@ -43,8 +43,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Alarms are lost on reboot and when the app is replaced, so the daily
-        // reminder is put back every launch rather than only when it is set.
-        Reminders.apply(this)
+        // reminder is put back every launch. Some devices refuse alarms to apps
+        // they have put to sleep, and that is not worth a failed launch over.
+        try {
+            Reminders.apply(this)
+        } catch (e: Throwable) {
+            // No reminder this run. The library still works.
+        }
 
         setContent {
             var themeMode by remember { mutableStateOf(prefs.themeMode) }

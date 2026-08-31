@@ -21,6 +21,11 @@ class BookQuestApp : Application() {
             LocaleListCompat.forLanguageTags(prefs.language)
         )
 
-        Reminders.ensureChannel(this)
+        // A convenience, not a reason for the app to fail to open.
+        try {
+            Reminders.ensureChannel(this)
+        } catch (e: Throwable) {
+            // No channel means no reminder, which is survivable.
+        }
     }
 }

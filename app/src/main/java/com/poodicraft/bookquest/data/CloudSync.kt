@@ -252,6 +252,57 @@ class CloudSync private constructor(
     }
 
     /**
+     * Proves the person holding the phone is the account holder, for the one
+     * action that cannot be undone.
+     *
+     * Firebase requires a recent sign in before a delete regardless; doing it
+     * deliberately, with the password or the Google chooser in front of the
+     * user, turns a technical requirement into the confirmation it should have
+     * been all along.
+     */
+    suspend fun reauthenticateWithPassword(password: String): Result<Unit> {
+        val user = auth?.currentUser ?: return Result.failure(NotSignedIn())
+        val email = user.email
+        if (email.isNullOrBlank() || !hasPassword) return Result.failure(NoPassword())
+        return try {
+            user.reauthenticate(EmailAuthProvider.getCredential(email, password)).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * The Google equivalent: sign in with Google again, on this device, for this
+     * account. Google puts up its own account chooser, and picking the right
+     * account out of it is the proof.
+     *
+     * The token is checked against the signed in account before it counts, so
+     * choosing somebody else's account in the chooser confirms nothing.
+     */
+    suspend fun reauthenticateWithGoogle(activity: Activity): Result<Unit> {
+        val clientId = webClientId ?: return Result.failure(CloudNotConfigured())
+        val user = auth?.currentUser ?: return Result.failure(NotSignedIn())
+        val token = requestIdToken(activity, clientId, filterAuthorized = true)
+            ?: requestIdToken(activity, clientId, filterAuthorized = false)
+            ?: return Result.failure(lastCredentialError ?: SignInCancelled())
+        return try {
+            // Firebase rejects a credential belonging to anyone else with
+            // ERROR_USER_MISMATCH, so picking the wrong account in the chooser
+            // fails here rather than confirming anything.
+            user.reauthenticate(GoogleAuthProvider.getCredential(token, null)).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /** Which of the two confirmations this account can actually do. */
+    val signsInWithGoogle: Boolean
+        get() = auth?.currentUser?.providerData
+            ?.any { it.providerId == GoogleAuthProvider.PROVIDER_ID } == true
+
+    /**
      * Erases the account: the stored reading history and profile first, then the
      * Firebase user itself.
      *

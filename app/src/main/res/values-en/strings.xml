@@ -426,4 +426,25 @@
     <string name="privacy_p6">You can delete your account at any time from Settings. That removes the stored copy and the account itself. The books on your device remain yours.</string>
     <string name="privacy_h7">Crash reports</string>
     <string name="privacy_p7">If the app crashes, a report is written to your device and nowhere else. It is only sent if you choose to copy it and send it.</string>
+
+    <!-- notifications settings -->
+    <string name="notifications">Notifications</string>
+    <string name="notifications_hint">At most one a day. You can turn it off at any time.</string>
+    <string name="notifications_blocked_title">Notifications are blocked</string>
+    <string name="notifications_blocked_body">You told the app not to send notifications. You can change that in the device settings.</string>
+    <string name="open_settings">Open device settings</string>
+    <string name="notifications_allowed">Notifications are allowed</string>
+    <string name="reminder_skip_note">No reminder is sent on a day you have already read.</string>
+    <!-- first run permission prompt -->
+    <string name="notify_intro_title">Shall we remind you to read?</string>
+    <string name="notify_intro_body">One small reminder a day, at a time you pick, and only on days you have not read yet. Change it or turn it off whenever you like.</string>
+    <string name="notify_intro_yes">Yes, remind me</string>
+    <string name="notify_intro_no">No thanks</string>
+    <!-- re-authentication before deleting -->
+    <string name="confirm_its_you">Confirm it is you</string>
+    <string name="confirm_password_body">Type your account password to delete the account.</string>
+    <string name="confirm_google_body">To delete the account, sign in with Google again. Google will ask you to pick the account, and that is what confirms it is you.</string>
+    <string name="reauth_google">Confirm with Google</string>
+    <string name="reauth_failed">That did not confirm. Try again.</string>
+    <string name="continue_action">Continue</string>
 </resources>

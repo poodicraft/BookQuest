@@ -426,4 +426,25 @@
     <string name="privacy_p6">يمكنك حذف حسابك في أي وقت من الإعدادات. يزيل ذلك النسخة المحفوظة والحساب نفسه. وتبقى الكتب على جهازك لك.</string>
     <string name="privacy_h7">تقارير التعطل</string>
     <string name="privacy_p7">إذا تعطل التطبيق يكتب تقرير على جهازك ولا مكان آخر. ولا يرسل إلا إذا اخترت نسخه وإرساله.</string>
+
+    <!-- notifications settings -->
+    <string name="notifications">الإشعارات</string>
+    <string name="notifications_hint">إشعار واحد يوميا على الأكثر. يمكنك إيقافه في أي وقت.</string>
+    <string name="notifications_blocked_title">الإشعارات محظورة</string>
+    <string name="notifications_blocked_body">لقد منعت التطبيق من إرسال الإشعارات. يمكنك تغيير ذلك من إعدادات الجهاز.</string>
+    <string name="open_settings">فتح إعدادات الجهاز</string>
+    <string name="notifications_allowed">الإشعارات مسموح بها</string>
+    <string name="reminder_skip_note">لا يرسل تذكير في يوم قرأت فيه بالفعل.</string>
+    <!-- first run permission prompt -->
+    <string name="notify_intro_title">هل نذكرك بالقراءة?</string>
+    <string name="notify_intro_body">تذكير صغير واحد يوميا، في وقت تختاره، وفي الأيام التي لم تقرأ فيها فقط. غيره أو أوقفه متى شئت.</string>
+    <string name="notify_intro_yes">نعم، ذكرني</string>
+    <string name="notify_intro_no">لا، شكرا</string>
+    <!-- re-authentication before deleting -->
+    <string name="confirm_its_you">أكد أنك أنت</string>
+    <string name="confirm_password_body">اكتب كلمة مرور حسابك لحذف الحساب.</string>
+    <string name="confirm_google_body">لحذف الحساب، سجل الدخول بجوجل مرة أخرى. ستطلب منك جوجل اختيار الحساب، وهذا ما يؤكد أنك أنت.</string>
+    <string name="reauth_google">التأكيد عبر جوجل</string>
+    <string name="reauth_failed">لم يتم التأكيد. حاول مرة أخرى.</string>
+    <string name="continue_action">متابعة</string>
 </resources>

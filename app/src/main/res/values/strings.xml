@@ -426,4 +426,25 @@
     <string name="privacy_p6">אפשר למחוק את החשבון בכל רגע דרך ההגדרות. הפעולה מוחקת את העותק השמור ואת החשבון עצמו. הספרים שבמכשיר נשארים שלכם.</string>
     <string name="privacy_h7">דוחות קריסה</string>
     <string name="privacy_p7">אם האפליקציה קורסת נשמר דוח על המכשיר בלבד. הוא נשלח רק אם אתם בוחרים להעתיק ולשלוח אותו.</string>
+
+    <!-- notifications settings -->
+    <string name="notifications">התראות</string>
+    <string name="notifications_hint">התראה אחת ביום לכל היותר. אפשר לכבות בכל רגע.</string>
+    <string name="notifications_blocked_title">ההתראות חסומות</string>
+    <string name="notifications_blocked_body">אישרתם לאפליקציה לא לשלוח התראות. אפשר לשנות את זה בהגדרות המכשיר.</string>
+    <string name="open_settings">פתיחת הגדרות המכשיר</string>
+    <string name="notifications_allowed">ההתראות מאושרות</string>
+    <string name="reminder_skip_note">אם כבר קראתם באותו יום, לא תישלח תזכורת.</string>
+    <!-- first run permission prompt -->
+    <string name="notify_intro_title">שנזכיר לכם לקרוא?</string>
+    <string name="notify_intro_body">תזכורת קטנה אחת ביום, בשעה שתבחרו, ורק בימים שעוד לא קראתם בהם. אפשר לשנות או לכבות מתי שרוצים.</string>
+    <string name="notify_intro_yes">כן, להזכיר לי</string>
+    <string name="notify_intro_no">לא, תודה</string>
+    <!-- re-authentication before deleting -->
+    <string name="confirm_its_you">מאשרים שזה אתם</string>
+    <string name="confirm_password_body">הקלידו את הסיסמה של החשבון כדי למחוק אותו.</string>
+    <string name="confirm_google_body">כדי למחוק את החשבון, היכנסו שוב עם גוגל. גוגל תבקש מכם לבחור את החשבון, וזה מה שמאשר שזה אתם.</string>
+    <string name="reauth_google">אישור עם גוגל</string>
+    <string name="reauth_failed">האישור לא עבר. נסו שוב.</string>
+    <string name="continue_action">המשך</string>
 </resources>

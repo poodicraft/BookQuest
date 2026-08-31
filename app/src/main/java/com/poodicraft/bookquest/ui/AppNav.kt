@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -114,6 +116,7 @@ fun BookQuestRoot(
     val online by connectivity.online.collectAsStateWithLifecycle()
     val account by cloud.account.collectAsStateWithLifecycle()
     val schoolProfile by classroom.profile.collectAsStateWithLifecycle()
+    val roleKnown by classroom.ready.collectAsStateWithLifecycle()
 
     // Pull the account's role and classes once per sign in, so no screen has to
     // fetch them on the way in and none of them can be missing on the way back.
@@ -235,12 +238,32 @@ fun BookQuestRoot(
     }
 
     // Straight after signing in, once: teacher or student, and who you are.
+    //
+    // Only ask once the answer is actually known to be missing. Before the
+    // account has been read the role reads as UNKNOWN whether or not one was
+    // ever chosen, and asking on that basis is what made this screen flash past
+    // on every launch.
     var roleAsked by rememberSaveable { mutableStateOf(false) }
+    if (account is AccountState.SignedIn && !roleKnown) {
+        SettlingScreen()
+        return
+    }
     if (account is AccountState.SignedIn &&
         schoolProfile.role == UserRole.UNKNOWN &&
         !roleAsked
     ) {
         RoleScreen(onDone = { roleAsked = true })
+        return
+    }
+
+    // Once, on the first run after installing, and after the account questions
+    // so the app has already shown what it is before asking to interrupt you.
+    var notifyAsked by rememberSaveable { mutableStateOf(prefs.onboarded) }
+    if (!notifyAsked) {
+        NotifyIntroScreen(onDone = {
+            prefs.onboarded = true
+            notifyAsked = true
+        })
         return
     }
 
@@ -429,6 +452,20 @@ fun BookQuestRoot(
             title = { Text(currentCelebration.title) },
             text = { Text(currentCelebration.message) }
         )
+    }
+}
+
+/**
+ * A blank hold, dressed as the app rather than as a spinner, for the moment
+ * between the app opening and the account being read. It is usually invisible;
+ * the point is that whatever replaces it is correct.
+ */
+@Composable
+private fun SettlingScreen() {
+    AppBackground {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 

@@ -88,6 +88,7 @@ fun ClassScreen(
 
     val account by cloud.account.collectAsStateWithLifecycle()
     val profile by classroom.profile.collectAsStateWithLifecycle()
+    val roleKnown by classroom.ready.collectAsStateWithLifecycle()
 
     var refreshKey by remember { mutableIntStateOf(0) }
     val classes by classroom.classes.collectAsStateWithLifecycle()
@@ -121,6 +122,15 @@ fun ClassScreen(
     }
 
     if (loading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        return
+    }
+
+    // Same rule as the app's own gate: never ask until the account has been
+    // read, or a slow read looks exactly like a role that was never chosen.
+    if (!roleKnown) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }

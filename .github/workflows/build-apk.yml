@@ -53,10 +53,12 @@ jobs:
         timeout-minutes: 30
         run: ./gradlew --no-daemon --console=plain --stacktrace :app:assembleDebug
 
-      # The release variant is minified and resource shrunk. Building it here is
-      # what proves the keep rules in proguard-rules.pro are right; a release
-      # config that is never built is a config that is quietly broken.
-      - name: Build the release APK
+      # The release variant is minified and resource shrunk. It is still built
+      # here so the config and the keep rules cannot rot, but it is NOT
+      # published: the 2.0 release APK crashed on launch on a real phone, and a
+      # green build says nothing about that — R8 breaks things at run time, not
+      # at compile time. Nothing goes out for install until it has been run.
+      - name: Build the release APK (not published)
         timeout-minutes: 30
         run: ./gradlew --no-daemon --console=plain --stacktrace :app:assembleRelease
 
@@ -64,7 +66,7 @@ jobs:
         run: |
           mkdir -p out
           cp app/build/outputs/apk/debug/app-debug.apk out/BookQuest.apk
-          cp app/build/outputs/apk/release/app-release.apk out/BookQuest-release.apk
+          # Deliberately not copied into out/: see the build step above.
           ls -lh out
           VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -76,9 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BookQuest-apk
-          path: |
-            out/BookQuest.apk
-            out/BookQuest-release.apk
+          path: out/BookQuest.apk
           if-no-files-found: error
 
       - name: Publish the APK to the rolling release
@@ -88,7 +88,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete apk-latest --yes --cleanup-tag || true
-          gh release create apk-latest out/BookQuest.apk out/BookQuest-release.apk \
+          gh release create apk-latest out/BookQuest.apk \
             --title "BookQuest APK (latest build)" \
-            --notes "BookQuest ${{ env.APP_VERSION }}, built from ${{ github.sha }} on branch ${{ github.ref_name }}. Install BookQuest.apk on an Android phone (Android 7.0 or newer). BookQuest-release.apk is the same version minified and shrunk; both are signed with the same key, so either installs over the other." \
+            --notes "BookQuest ${{ env.APP_VERSION }}, built from ${{ github.sha }} on branch ${{ github.ref_name }}. Install BookQuest.apk on an Android phone (Android 7.0 or newer). This is the only APK published: the minified release build is still compiled by CI to keep its configuration honest, but it is not handed out until it has been run on a device." \
             --prerelease

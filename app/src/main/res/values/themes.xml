@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!--
+      The launch theme. Android draws this the instant the icon is tapped, well
+      before any of our code runs, so without it the app opens on a blank white
+      rectangle. Theme.BookQuest is what the activity switches to once it is up.
+    -->
+    <style name="Theme.BookQuest.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.BookQuest</item>
+    </style>
+
     <style name="Theme.BookQuest" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>

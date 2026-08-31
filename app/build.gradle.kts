@@ -18,8 +18,8 @@ android {
         applicationId = "com.poodicraft.bookquest"
         minSdk = 24
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.9"
+        versionCode = 11
+        versionName = "2.0"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -42,11 +42,17 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
-            isMinifyEnabled = false
+            // A shipped build is shrunk and obfuscated. proguard-rules.pro holds
+            // the keep rules the reflective libraries need — Firestore reads and
+            // writes model classes by field name, so stripping those names breaks
+            // the backup in a way that only shows up on a release build.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -85,6 +91,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
     implementation("androidx.documentfile:documentfile:1.0.1")
+    // Draws the launch screen before any of our code runs, so tapping the icon
+    // does not open on a blank rectangle.
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     implementation(composeBom)

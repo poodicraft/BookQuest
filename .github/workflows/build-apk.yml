@@ -39,27 +39,7 @@ jobs:
           ls "$ANDROID_HOME/build-tools" || true
 
       - name: Check the string resources
-        run: |
-          fail=0
-          files="app/src/main/res/values/strings.xml app/src/main/res/values-en/strings.xml app/src/main/res/values-ar/strings.xml"
-          for f in $files; do
-            dupes=$(grep -o 'name="[a-z0-9_]*"' "$f" | sort | uniq -d)
-            if [ -n "$dupes" ]; then
-              echo "Duplicate keys in $f:"
-              echo "$dupes"
-              fail=1
-            fi
-          done
-          base=$(grep -o 'name="[a-z0-9_]*"' app/src/main/res/values-en/strings.xml | sort)
-          for f in app/src/main/res/values/strings.xml app/src/main/res/values-ar/strings.xml; do
-            if ! diff <(echo "$base") <(grep -o 'name="[a-z0-9_]*"' "$f" | sort) > /dev/null; then
-              echo "Key set differs from values-en in $f:"
-              diff <(echo "$base") <(grep -o 'name="[a-z0-9_]*"' "$f" | sort) || true
-              fail=1
-            fi
-          done
-          if [ "$fail" = "0" ]; then echo "Strings are consistent across all three languages."; fi
-          exit $fail
+        run: python3 tools/check_strings.py
 
       - name: Check the Gradle wrapper
         timeout-minutes: 10
@@ -73,10 +53,18 @@ jobs:
         timeout-minutes: 30
         run: ./gradlew --no-daemon --console=plain --stacktrace :app:assembleDebug
 
+      # The release variant is minified and resource shrunk. Building it here is
+      # what proves the keep rules in proguard-rules.pro are right; a release
+      # config that is never built is a config that is quietly broken.
+      - name: Build the release APK
+        timeout-minutes: 30
+        run: ./gradlew --no-daemon --console=plain --stacktrace :app:assembleRelease
+
       - name: Collect the APK
         run: |
           mkdir -p out
           cp app/build/outputs/apk/debug/app-debug.apk out/BookQuest.apk
+          cp app/build/outputs/apk/release/app-release.apk out/BookQuest-release.apk
           ls -lh out
           VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -88,7 +76,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BookQuest-apk
-          path: out/BookQuest.apk
+          path: |
+            out/BookQuest.apk
+            out/BookQuest-release.apk
           if-no-files-found: error
 
       - name: Publish the APK to the rolling release
@@ -98,7 +88,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete apk-latest --yes --cleanup-tag || true
-          gh release create apk-latest out/BookQuest.apk \
+          gh release create apk-latest out/BookQuest.apk out/BookQuest-release.apk \
             --title "BookQuest APK (latest build)" \
-            --notes "BookQuest ${{ env.APP_VERSION }} — debug APK built from ${{ github.sha }} on branch ${{ github.ref_name }}. Download BookQuest.apk and install it on an Android phone (Android 7.0 or newer)." \
+            --notes "BookQuest ${{ env.APP_VERSION }}, built from ${{ github.sha }} on branch ${{ github.ref_name }}. Install BookQuest.apk on an Android phone (Android 7.0 or newer). BookQuest-release.apk is the same version minified and shrunk; both are signed with the same key, so either installs over the other." \
             --prerelease

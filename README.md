@@ -36,6 +36,7 @@ always tell which build is on the phone.
 
 | Version | What changed |
 | --- | --- |
+| 2.0 (11) | Launch screen, daily reading reminder, offline banner, export and import, About with privacy policy and licences, delete your account, crash reports, minified release build |
 | 1.9 (10) | Remove a class with a confirmation, a full profile editor with picture and bio, teacher tips |
 | 1.8 (9) | Home tab reachable again from every other tab, no daily reading goal in a teacher's settings |
 | 1.7 (8) | Class stream with messages and files, homework with hand-ins and marking, teachers no longer collect XP |

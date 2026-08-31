@@ -30,6 +30,25 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_STARTER, false)
         set(value) = sp.edit().putBoolean(KEY_STARTER, value).apply()
 
+    /** Whether the daily reading reminder is switched on. */
+    var reminderOn: Boolean
+        get() = sp.getBoolean(KEY_REMINDER_ON, false)
+        set(value) = sp.edit().putBoolean(KEY_REMINDER_ON, value).apply()
+
+    /** Hour of day, 0..23, that the reminder fires. */
+    var reminderHour: Int
+        get() = sp.getInt(KEY_REMINDER_HOUR, 18)
+        set(value) = sp.edit().putInt(KEY_REMINDER_HOUR, value.coerceIn(0, 23)).apply()
+
+    var reminderMinute: Int
+        get() = sp.getInt(KEY_REMINDER_MINUTE, 0)
+        set(value) = sp.edit().putInt(KEY_REMINDER_MINUTE, value.coerceIn(0, 59)).apply()
+
+    /** True once the welcome tour has been seen, so it only runs on a first launch. */
+    var onboarded: Boolean
+        get() = sp.getBoolean(KEY_ONBOARDED, false)
+        set(value) = sp.edit().putBoolean(KEY_ONBOARDED, value).apply()
+
     companion object {
         const val DEFAULT_LANGUAGE = "he"
         val LANGUAGES = listOf("he", "en", "ar")
@@ -39,5 +58,9 @@ class Prefs(context: Context) {
         private const val KEY_FONT = "reader_font"
         private const val KEY_READER_THEME = "reader_theme"
         private const val KEY_STARTER = "starter_books_added"
+        private const val KEY_REMINDER_ON = "reminder_on"
+        private const val KEY_REMINDER_HOUR = "reminder_hour"
+        private const val KEY_REMINDER_MINUTE = "reminder_minute"
+        private const val KEY_ONBOARDED = "onboarded"
     }
 }

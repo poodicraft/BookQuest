@@ -489,6 +489,26 @@ class Classroom private constructor(private val appContext: Context) {
         }
     }
 
+    /**
+     * Clears this account out of every class it touches, for account deletion.
+     *
+     * A teacher's classes are deleted; a student is only taken off the rosters.
+     * It has to run while the account still exists, because every rule that
+     * grants the removal is checked against the signed in user.
+     */
+    suspend fun leaveEverything(): Result<Unit> {
+        val id = uid ?: return Result.failure(NotSignedIn())
+        return try {
+            refreshClasses()
+            for (item in _classes.value.toList()) {
+                if (item.teacherUid == id) deleteClass(item.id) else leaveClass(item.id)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     /** Removes one class id from the account document and the cached profile. */
     private suspend fun forgetClassId(
         store: FirebaseFirestore,

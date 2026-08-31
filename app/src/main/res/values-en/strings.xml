@@ -360,4 +360,70 @@
     <string name="tip_t3">A five question quiz after each chapter shows you what actually landed.</string>
     <string name="tip_t4">Attach the file itself to the work, so students read it in the app instead of hunting for it.</string>
     <string name="tip_t5">Write a sentence back on every hand-in. Students read a personal comment long before a mark.</string>
+
+    <!-- daily reminder -->
+    <string name="reminder_channel">Reading reminder</string>
+    <string name="reminder_channel_hint">One reminder a day, at the time you pick.</string>
+    <string name="reminder_section">Daily reminder</string>
+    <string name="reminder_switch">Remind me to read</string>
+    <string name="reminder_at">At %1$s</string>
+    <string name="reminder_title">Time to read 📖</string>
+    <string name="reminder_body">A few minutes of reading today, and you are on your way.</string>
+    <string name="reminder_body_streak">Do not break the streak! %1$d days running.</string>
+    <string name="reminder_blocked">Notifications are turned off for this app. You can allow them in the device settings.</string>
+    <string name="pick_time">Pick a time</string>
+    <string name="hour_label">Hour</string>
+    <string name="minute_label">Minutes</string>
+    <!-- offline -->
+    <string name="offline_banner">No internet connection. Your library still works, and the backup carries on when you are back.</string>
+    <!-- your data -->
+    <string name="your_data">Your data</string>
+    <string name="export_data">Export to a file</string>
+    <string name="import_data">Import from a file</string>
+    <string name="export_hint">Saves your progress, flashcards and goals to one file you keep yourself.</string>
+    <string name="export_done">Your data was saved</string>
+    <string name="import_done">Your data was imported</string>
+    <string name="import_bad_file">That file is not a BookQuest backup</string>
+    <!-- about and legal -->
+    <string name="about_title">About</string>
+    <string name="version_full">Version %1$s (%2$d)</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="open_source">Open source licences</string>
+    <string name="contact_us">Get in touch</string>
+    <string name="contact_hint">A question, a bug or an idea? Write to us.</string>
+    <string name="send_email">Send an email</string>
+    <string name="no_email_app">No email app was found on this device</string>
+    <string name="made_with">Built for schools, in Hebrew, English and Arabic.</string>
+    <!-- crash report -->
+    <string name="crash_title">The app crashed</string>
+    <string name="crash_hint">A report was saved on this device. Nothing was sent anywhere. You can copy it and send it to us so we can fix it.</string>
+    <string name="copy_report">Copy the report</string>
+    <string name="report_copied">Report copied</string>
+    <string name="dismiss_report">Close</string>
+    <string name="last_crash">Last crash</string>
+    <!-- danger zone -->
+    <string name="sign_out_confirm">Sign out of this account? Backed up progress is kept, and your books stay on this device.</string>
+    <string name="delete_account">Delete your account</string>
+    <string name="delete_account_hint">Permanently deletes the account, its backup and any classes you opened. Books on this device stay.</string>
+    <string name="delete_account_confirm">To confirm, type %1$s</string>
+    <string name="delete_word">DELETE</string>
+    <string name="delete_account_done">Account deleted</string>
+    <string name="delete_account_failed">The account could not be deleted. Sign out, sign in again, and retry.</string>
+
+    <!-- privacy policy -->
+    <string name="privacy_updated">Updated August 2026</string>
+    <string name="privacy_h1">Your books stay yours</string>
+    <string name="privacy_p1">A file you add to the library is copied into the app\'s private storage on your device. It is never uploaded anywhere, not even while you are signed in.</string>
+    <string name="privacy_h2">Without an account, nothing leaves the device</string>
+    <string name="privacy_p2">The whole app works signed out. In that state everything — progress, points, flashcards and settings — is kept on the device only.</string>
+    <string name="privacy_h3">What is stored when you sign in</string>
+    <string name="privacy_p3">With an account, these are held on Google Firebase servers: your name, email address, the profile picture and bio you wrote, your school, your reading progress, the classes you belong to, and what you hand in to them. That is what lets you carry on from the same place on another phone.</string>
+    <string name="privacy_h4">Who can see it</string>
+    <string name="privacy_p4">A teacher sees who joined their class, what was handed in, and the quiz results — for their own classes only. Students see each other\'s messages in the class stream. Nobody else sees anything.</string>
+    <string name="privacy_h5">No adverts, no tracking</string>
+    <string name="privacy_p5">There are no adverts, no analytics and no tracking of any kind in this app. Nothing is sold or passed to a third party.</string>
+    <string name="privacy_h6">Deleting</string>
+    <string name="privacy_p6">You can delete your account at any time from Settings. That removes the stored copy and the account itself. The books on your device remain yours.</string>
+    <string name="privacy_h7">Crash reports</string>
+    <string name="privacy_p7">If the app crashes, a report is written to your device and nowhere else. It is only sent if you choose to copy it and send it.</string>
 </resources>

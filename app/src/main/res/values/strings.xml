@@ -360,4 +360,70 @@
     <string name="tip_t3">בוחן קצר של חמש שאלות אחרי כל פרק מגלה מה באמת נקלט.</string>
     <string name="tip_t4">מצרפים את הקובץ עצמו למשימה, כדי שהתלמידים יקראו אותו באפליקציה בלי לחפש.</string>
     <string name="tip_t5">כותבים משפט משוב לכל הגשה. תלמיד קורא משוב אישי הרבה לפני ציון.</string>
+
+    <!-- daily reminder -->
+    <string name="reminder_channel">תזכורת קריאה</string>
+    <string name="reminder_channel_hint">תזכורת יומית אחת, בשעה שבחרתם.</string>
+    <string name="reminder_section">תזכורת יומית</string>
+    <string name="reminder_switch">להזכיר לי לקרוא</string>
+    <string name="reminder_at">בשעה %1$s</string>
+    <string name="reminder_title">זמן לקרוא 📖</string>
+    <string name="reminder_body">כמה דקות של קריאה היום, וממשיכים.</string>
+    <string name="reminder_body_streak">אל תשברו את הרצף! %1$d ימים ברציפות.</string>
+    <string name="reminder_blocked">האפליקציה לא קיבלה רשות לשלוח התראות. אפשר לאשר בהגדרות המכשיר.</string>
+    <string name="pick_time">בחירת שעה</string>
+    <string name="hour_label">שעה</string>
+    <string name="minute_label">דקות</string>
+    <!-- offline -->
+    <string name="offline_banner">אין חיבור לאינטרנט. הספרייה עובדת, והגיבוי ימשיך כשהחיבור יחזור.</string>
+    <!-- your data -->
+    <string name="your_data">הנתונים שלי</string>
+    <string name="export_data">ייצוא לקובץ</string>
+    <string name="import_data">ייבוא מקובץ</string>
+    <string name="export_hint">שומר את ההתקדמות, הכרטיסיות והיעדים לקובץ אחד שאפשר לשמור אצלכם.</string>
+    <string name="export_done">הנתונים נשמרו</string>
+    <string name="import_done">הנתונים יובאו</string>
+    <string name="import_bad_file">הקובץ הזה אינו גיבוי של האפליקציה</string>
+    <!-- about and legal -->
+    <string name="about_title">על האפליקציה</string>
+    <string name="version_full">גרסה %1$s (%2$d)</string>
+    <string name="privacy_policy">מדיניות פרטיות</string>
+    <string name="open_source">רישיונות קוד פתוח</string>
+    <string name="contact_us">יצירת קשר</string>
+    <string name="contact_hint">שאלה, באג או רעיון? כתבו לנו.</string>
+    <string name="send_email">שליחת מייל</string>
+    <string name="no_email_app">לא נמצאה אפליקציית מייל במכשיר</string>
+    <string name="made_with">נבנה עבור בתי ספר, בעברית, אנגלית וערבית.</string>
+    <!-- crash report -->
+    <string name="crash_title">האפליקציה קרסה</string>
+    <string name="crash_hint">שמרנו דוח על המכשיר. שום דבר לא נשלח לשום מקום. אפשר להעתיק אותו ולשלוח לנו כדי שנתקן.</string>
+    <string name="copy_report">העתקת הדוח</string>
+    <string name="report_copied">הדוח הועתק</string>
+    <string name="dismiss_report">סגירה</string>
+    <string name="last_crash">הקריסה האחרונה</string>
+    <!-- danger zone -->
+    <string name="sign_out_confirm">להתנתק מהחשבון? ההתקדמות שגובתה נשמרת, והספרים נשארים במכשיר.</string>
+    <string name="delete_account">מחיקת החשבון</string>
+    <string name="delete_account_hint">מוחק לצמיתות את החשבון, את הגיבוי, ואת הכיתות שפתחתם. הספרים שבמכשיר נשארים.</string>
+    <string name="delete_account_confirm">כדי לאשר, הקלידו %1$s</string>
+    <string name="delete_word">מחיקה</string>
+    <string name="delete_account_done">החשבון נמחק</string>
+    <string name="delete_account_failed">לא הצלחנו למחוק את החשבון. התנתקו, היכנסו שוב ונסו שוב.</string>
+
+    <!-- privacy policy -->
+    <string name="privacy_updated">עודכן באוגוסט 2026</string>
+    <string name="privacy_h1">הספרים שלכם נשארים אצלכם</string>
+    <string name="privacy_p1">קובץ שאתם מוסיפים לספרייה מועתק לאחסון הפרטי של האפליקציה במכשיר. הוא לא נשלח לשום מקום, גם לא כשאתם מחוברים לחשבון.</string>
+    <string name="privacy_h2">בלי חשבון, שום דבר לא יוצא מהמכשיר</string>
+    <string name="privacy_p2">אפשר להשתמש בכל האפליקציה בלי להתחבר. במצב הזה כל הנתונים — התקדמות, ניקוד, כרטיסיות והגדרות — נשמרים רק במכשיר.</string>
+    <string name="privacy_h3">מה נשמר כשמתחברים</string>
+    <string name="privacy_p3">עם חשבון נשמרים בשרתי Google Firebase: השם, כתובת המייל, תמונת הפרופיל והתיאור שכתבתם, בית הספר, התקדמות הקריאה, הכיתות שאתם חברים בהן, ומה שהגשתם בהן. זה מה שמאפשר להמשיך מאותה נקודה בטלפון אחר.</string>
+    <string name="privacy_h4">מי רואה את זה</string>
+    <string name="privacy_p4">המורה של כיתה רואה את מי שהצטרף אליה, את ההגשות ואת תוצאות הבחנים בכיתה שלו בלבד. תלמידים רואים זה את הודעות זה בזרם הכיתה. אף אחד אחר לא רואה כלום.</string>
+    <string name="privacy_h5">אין פרסומות ואין מעקב</string>
+    <string name="privacy_p5">אין באפליקציה פרסומות, אנליטיקה או כלי מעקב מכל סוג. שום נתון לא נמכר ולא מועבר לצד שלישי.</string>
+    <string name="privacy_h6">מחיקה</string>
+    <string name="privacy_p6">אפשר למחוק את החשבון בכל רגע דרך ההגדרות. הפעולה מוחקת את העותק השמור ואת החשבון עצמו. הספרים שבמכשיר נשארים שלכם.</string>
+    <string name="privacy_h7">דוחות קריסה</string>
+    <string name="privacy_p7">אם האפליקציה קורסת נשמר דוח על המכשיר בלבד. הוא נשלח רק אם אתם בוחרים להעתיק ולשלוח אותו.</string>
 </resources>

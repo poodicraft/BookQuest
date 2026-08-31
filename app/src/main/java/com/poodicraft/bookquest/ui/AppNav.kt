@@ -2,8 +2,11 @@ package com.poodicraft.bookquest.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -39,6 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -52,6 +56,8 @@ import com.poodicraft.bookquest.data.AccountState
 import com.poodicraft.bookquest.data.AppEvent
 import com.poodicraft.bookquest.data.Badges
 import com.poodicraft.bookquest.data.Classroom
+import com.poodicraft.bookquest.data.Connectivity
+import com.poodicraft.bookquest.data.CrashLog
 import com.poodicraft.bookquest.data.CloudSync
 import com.poodicraft.bookquest.data.UserRole
 import com.poodicraft.bookquest.data.LibraryRepository
@@ -104,6 +110,8 @@ fun BookQuestRoot(
 
     val cloud = remember { CloudSync.get(context) }
     val classroom = remember { Classroom.get(context) }
+    val connectivity = remember { Connectivity.get(context) }
+    val online by connectivity.online.collectAsStateWithLifecycle()
     val account by cloud.account.collectAsStateWithLifecycle()
     val schoolProfile by classroom.profile.collectAsStateWithLifecycle()
 
@@ -111,6 +119,15 @@ fun BookQuestRoot(
     // fetch them on the way in and none of them can be missing on the way back.
     LaunchedEffect(account) {
         if (account is AccountState.SignedIn) classroom.ensureLoaded()
+    }
+
+    // Coming back online is the moment a failed backup can succeed, so it is
+    // retried there and then rather than waiting to be asked.
+    LaunchedEffect(online, account) {
+        if (online && account is AccountState.SignedIn) {
+            cloud.pushQuietly()
+            classroom.ensureLoaded(force = true)
+        }
     }
 
     // Signed out launches open on the welcome screen. "Not now" dismisses it for
@@ -183,6 +200,32 @@ fun BookQuestRoot(
     val currentRoute = backStackEntry?.destination?.route
     val onTab = tabs.any { it.route == currentRoute }
 
+    // A crash the last time round. Shown once, then the report is cleared so it
+    // cannot follow someone around; About keeps a copy until the next crash.
+    var crashReport by remember { mutableStateOf(CrashLog.read(context)) }
+    val pendingCrash = crashReport
+    if (pendingCrash != null) {
+        AlertDialog(
+            onDismissRequest = { crashReport = null },
+            icon = { Text(text = "🐞", fontSize = 30.sp) },
+            title = { Text(stringResource(R.string.crash_title)) },
+            text = { Text(stringResource(R.string.crash_hint)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    copyToClipboard(context, pendingCrash)
+                    crashReport = null
+                }) {
+                    Text(stringResource(R.string.copy_report))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { crashReport = null }) {
+                    Text(stringResource(R.string.dismiss_report))
+                }
+            }
+        )
+    }
+
     if (account is AccountState.SignedOut && !skippedSignIn) {
         AuthScreen(
             onSkip = { skippedSignIn = true },
@@ -226,7 +269,20 @@ fun BookQuestRoot(
                 }
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                if (!online) {
+                    Text(
+                        text = stringResource(R.string.offline_banner),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+                Box(modifier = Modifier.fillMaxSize()) {
                 NavHost(
                     navController = navController,
                     startDestination = Routes.HOME
@@ -355,6 +411,7 @@ fun BookQuestRoot(
                 }
 
                 ConfettiBurst(trigger = confettiTrigger)
+                }
             }
         }
     }

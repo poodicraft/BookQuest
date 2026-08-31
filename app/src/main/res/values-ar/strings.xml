@@ -360,4 +360,70 @@
     <string name="tip_t3">اختبار من خمسة أسئلة بعد كل فصل يكشف ما وصل فعلا.</string>
     <string name="tip_t4">أرفق الملف نفسه بالمهمة ليقرأه الطلاب في التطبيق بدل البحث عنه.</string>
     <string name="tip_t5">اكتب جملة على كل تسليم. يقرأ الطالب التعليق الشخصي قبل العلامة بكثير.</string>
+
+    <!-- daily reminder -->
+    <string name="reminder_channel">تذكير بالقراءة</string>
+    <string name="reminder_channel_hint">تذكير واحد يوميا، في الوقت الذي تختاره.</string>
+    <string name="reminder_section">تذكير يومي</string>
+    <string name="reminder_switch">ذكرني بالقراءة</string>
+    <string name="reminder_at">في الساعة %1$s</string>
+    <string name="reminder_title">حان وقت القراءة 📖</string>
+    <string name="reminder_body">بضع دقائق من القراءة اليوم، وتكون قد بدأت.</string>
+    <string name="reminder_body_streak">لا تكسر التتابع! %1$d أيام متواصلة.</string>
+    <string name="reminder_blocked">الإشعارات مغلقة لهذا التطبيق. يمكنك السماح بها من إعدادات الجهاز.</string>
+    <string name="pick_time">اختر وقتا</string>
+    <string name="hour_label">الساعة</string>
+    <string name="minute_label">الدقائق</string>
+    <!-- offline -->
+    <string name="offline_banner">لا يوجد اتصال بالإنترنت. مكتبتك تعمل، والنسخ الاحتياطي يستأنف عند عودة الاتصال.</string>
+    <!-- your data -->
+    <string name="your_data">بياناتي</string>
+    <string name="export_data">تصدير إلى ملف</string>
+    <string name="import_data">استيراد من ملف</string>
+    <string name="export_hint">يحفظ تقدمك وبطاقاتك وأهدافك في ملف واحد تحتفظ به أنت.</string>
+    <string name="export_done">تم حفظ بياناتك</string>
+    <string name="import_done">تم استيراد بياناتك</string>
+    <string name="import_bad_file">هذا الملف ليس نسخة احتياطية للتطبيق</string>
+    <!-- about and legal -->
+    <string name="about_title">عن التطبيق</string>
+    <string name="version_full">الإصدار %1$s (%2$d)</string>
+    <string name="privacy_policy">سياسة الخصوصية</string>
+    <string name="open_source">تراخيص المصادر المفتوحة</string>
+    <string name="contact_us">تواصل معنا</string>
+    <string name="contact_hint">سؤال أو خلل أو فكرة? اكتب لنا.</string>
+    <string name="send_email">إرسال بريد</string>
+    <string name="no_email_app">لم يعثر على تطبيق بريد في هذا الجهاز</string>
+    <string name="made_with">بني للمدارس، بالعبرية والإنجليزية والعربية.</string>
+    <!-- crash report -->
+    <string name="crash_title">تعطل التطبيق</string>
+    <string name="crash_hint">حفظنا تقريرا على هذا الجهاز. لم يرسل أي شيء إلى أي مكان. يمكنك نسخه وإرساله إلينا لنصلح الخلل.</string>
+    <string name="copy_report">نسخ التقرير</string>
+    <string name="report_copied">تم نسخ التقرير</string>
+    <string name="dismiss_report">إغلاق</string>
+    <string name="last_crash">آخر تعطل</string>
+    <!-- danger zone -->
+    <string name="sign_out_confirm">هل تريد الخروج من هذا الحساب? يبقى التقدم المحفوظ، وتبقى كتبك على الجهاز.</string>
+    <string name="delete_account">حذف الحساب</string>
+    <string name="delete_account_hint">يحذف نهائيا الحساب ونسخته الاحتياطية والصفوف التي أنشأتها. تبقى الكتب على الجهاز.</string>
+    <string name="delete_account_confirm">للتأكيد، اكتب %1$s</string>
+    <string name="delete_word">حذف</string>
+    <string name="delete_account_done">تم حذف الحساب</string>
+    <string name="delete_account_failed">تعذر حذف الحساب. اخرج ثم ادخل مرة أخرى وأعد المحاولة.</string>
+
+    <!-- privacy policy -->
+    <string name="privacy_updated">حدثت في آب 2026</string>
+    <string name="privacy_h1">كتبك تبقى لك</string>
+    <string name="privacy_p1">الملف الذي تضيفه إلى المكتبة ينسخ إلى التخزين الخاص بالتطبيق على جهازك. لا يرفع إلى أي مكان، ولا حتى وأنت داخل بحسابك.</string>
+    <string name="privacy_h2">بدون حساب لا يخرج شيء من الجهاز</string>
+    <string name="privacy_p2">يعمل التطبيق كاملا دون تسجيل دخول. في هذه الحالة يبقى كل شيء — التقدم والنقاط والبطاقات والإعدادات — على الجهاز وحده.</string>
+    <string name="privacy_h3">ما الذي يحفظ عند تسجيل الدخول</string>
+    <string name="privacy_p3">مع الحساب تحفظ على خوادم Google Firebase: اسمك وبريدك الإلكتروني وصورة ملفك ونبذتك ومدرستك وتقدم قراءتك والصفوف التي تنتمي إليها وما تسلمه فيها. هذا ما يتيح لك المتابعة من النقطة نفسها على هاتف آخر.</string>
+    <string name="privacy_h4">من يرى ذلك</string>
+    <string name="privacy_p4">يرى المعلم من انضم إلى صفه وما سلم ونتائج الاختبارات، في صفوفه هو فقط. ويرى الطلاب رسائل بعضهم في تدفق الصف. ولا يرى أحد غيرهم شيئا.</string>
+    <string name="privacy_h5">لا إعلانات ولا تتبع</string>
+    <string name="privacy_p5">لا توجد في هذا التطبيق إعلانات ولا تحليلات ولا تتبع من أي نوع. ولا تباع أي بيانات ولا تمرر إلى طرف ثالث.</string>
+    <string name="privacy_h6">الحذف</string>
+    <string name="privacy_p6">يمكنك حذف حسابك في أي وقت من الإعدادات. يزيل ذلك النسخة المحفوظة والحساب نفسه. وتبقى الكتب على جهازك لك.</string>
+    <string name="privacy_h7">تقارير التعطل</string>
+    <string name="privacy_p7">إذا تعطل التطبيق يكتب تقرير على جهازك ولا مكان آخر. ولا يرسل إلا إذا اخترت نسخه وإرساله.</string>
 </resources>

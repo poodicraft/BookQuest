@@ -3,6 +3,7 @@ package com.poodicraft.bookquest
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.poodicraft.bookquest.data.CloudSync
 import com.poodicraft.bookquest.data.LibraryRepository
 import com.poodicraft.bookquest.data.Prefs
+import com.poodicraft.bookquest.data.Reminders
 import com.poodicraft.bookquest.data.Subject
 import com.poodicraft.bookquest.ui.BookQuestRoot
 import com.poodicraft.bookquest.ui.theme.BookQuestTheme
@@ -21,6 +23,9 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Must run before super.onCreate, which is what swaps the launch theme
+        // out for the app's own.
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         val prefs = Prefs(this)
@@ -36,6 +41,10 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
+
+        // Alarms are lost on reboot and when the app is replaced, so the daily
+        // reminder is put back every launch rather than only when it is set.
+        Reminders.apply(this)
 
         setContent {
             var themeMode by remember { mutableStateOf(prefs.themeMode) }

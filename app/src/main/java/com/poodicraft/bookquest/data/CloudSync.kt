@@ -251,6 +251,45 @@ class CloudSync private constructor(
         }
     }
 
+    /**
+     * Erases the account: the stored reading history and profile first, then the
+     * Firebase user itself.
+     *
+     * Data goes before the user because deleting the user first would revoke the
+     * very credentials the rules check, stranding the documents where nobody can
+     * ever reach or remove them. Classes a teacher owns are deleted separately,
+     * by the caller, for the same reason — while they still have permission.
+     *
+     * Firebase only allows deletion on a recent sign in. A stale session comes
+     * back as a plain failure the caller reports, and signing in again fixes it.
+     */
+    suspend fun deleteAccount(): Result<Unit> {
+        val user = auth?.currentUser ?: return Result.failure(NotSignedIn())
+        val db = firestore ?: return Result.failure(CloudNotConfigured())
+        val uid = user.uid
+        return try {
+            withContext(Dispatchers.IO) {
+                try {
+                    db.collection("users").document(uid).delete().await()
+                } catch (e: Exception) {
+                    // Losing the stored copy is not a reason to keep the account
+                    // alive; the user asked for it gone.
+                }
+                user.delete().await()
+            }
+            try {
+                Classroom.get(appContext).clear()
+            } catch (e: Exception) {
+                // The sign out below still leaves the app in a clean state.
+            }
+            _sync.value = SyncState.Idle
+            refresh()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun signOut() {
         try {
             auth?.signOut()

@@ -426,9 +426,4 @@
     <string name="privacy_p6">يمكنك حذف حسابك في أي وقت من الإعدادات. يزيل ذلك النسخة المحفوظة والحساب نفسه. وتبقى الكتب على جهازك لك.</string>
     <string name="privacy_h7">تقارير التعطل</string>
     <string name="privacy_p7">إذا تعطل التطبيق يكتب تقرير على جهازك ولا مكان آخر. ولا يرسل إلا إذا اخترت نسخه وإرساله.</string>
-
-    <!-- safe mode, after a crash on the way up -->
-    <string name="safe_mode_title">حدث خلل أثناء بدء التشغيل</string>
-    <string name="safe_mode_hint">لم يتمكن التطبيق من الفتح في المرة السابقة. هذا ما حدث. انسخه وأرسله إلينا ثم تابع.</string>
-    <string name="safe_mode_continue">المتابعة إلى التطبيق</string>
 </resources>

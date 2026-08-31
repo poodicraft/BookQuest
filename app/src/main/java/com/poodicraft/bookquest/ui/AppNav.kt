@@ -64,7 +64,6 @@ import com.poodicraft.bookquest.data.LibraryRepository
 import com.poodicraft.bookquest.data.Prefs
 import com.poodicraft.bookquest.ui.components.AppBackground
 import com.poodicraft.bookquest.ui.components.ConfettiBurst
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 object Routes {
@@ -111,19 +110,8 @@ fun BookQuestRoot(
 
     val cloud = remember { CloudSync.get(context) }
     val classroom = remember { Classroom.get(context) }
-    // Nothing about knowing the connection state is worth failing to start over,
-    // so a device that will not hand over a ConnectivityManager just reads as
-    // online and the banner never shows.
-    val connectivity = remember {
-        try {
-            Connectivity.get(context)
-        } catch (e: Throwable) {
-            null
-        }
-    }
-    // remember must be called unconditionally, so the fallback is always built.
-    val assumeOnline = remember { MutableStateFlow(true) }
-    val online by (connectivity?.online ?: assumeOnline).collectAsStateWithLifecycle()
+    val connectivity = remember { Connectivity.get(context) }
+    val online by connectivity.online.collectAsStateWithLifecycle()
     val account by cloud.account.collectAsStateWithLifecycle()
     val schoolProfile by classroom.profile.collectAsStateWithLifecycle()
 

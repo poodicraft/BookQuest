@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The launch screen, drawn by the window manager from the first frame, before a
+  single line of the app has run.
+
+  This is a plain window background rather than the androidx splash screen
+  library on purpose. That library's theme is not an AppCompat theme, and this
+  activity is an AppCompatActivity that also swaps its locale at start up; the
+  two fighting over the activity's theme is the kind of thing that only ever
+  goes wrong on a real device. A layer list costs one file and cannot conflict
+  with anything.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/launcher_background" />
+    <item
+        android:width="160dp"
+        android:height="160dp"
+        android:drawable="@drawable/ic_launcher_foreground"
+        android:gravity="center" />
+</layer-list>

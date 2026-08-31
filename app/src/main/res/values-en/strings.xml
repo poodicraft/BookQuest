@@ -426,4 +426,9 @@
     <string name="privacy_p6">You can delete your account at any time from Settings. That removes the stored copy and the account itself. The books on your device remain yours.</string>
     <string name="privacy_h7">Crash reports</string>
     <string name="privacy_p7">If the app crashes, a report is written to your device and nowhere else. It is only sent if you choose to copy it and send it.</string>
+
+    <!-- safe mode, after a crash on the way up -->
+    <string name="safe_mode_title">Something broke on the way up</string>
+    <string name="safe_mode_hint">The app could not open last time. Here is what happened. Copy it and send it to us, then carry on.</string>
+    <string name="safe_mode_continue">Carry on to the app</string>
 </resources>

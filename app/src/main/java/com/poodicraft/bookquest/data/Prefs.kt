@@ -44,6 +44,15 @@ class Prefs(context: Context) {
         get() = sp.getInt(KEY_REMINDER_MINUTE, 0)
         set(value) = sp.edit().putInt(KEY_REMINDER_MINUTE, value.coerceIn(0, 59)).apply()
 
+    /**
+     * Set as the app starts and cleared once the first screen has actually been
+     * drawn. Finding it still set on the next launch means the app died on the
+     * way up, which is the one failure a user cannot get out of or report.
+     */
+    var launchInProgress: Boolean
+        get() = sp.getBoolean(KEY_LAUNCHING, false)
+        set(value) = sp.edit().putBoolean(KEY_LAUNCHING, value).commit().let { }
+
     /** True once the welcome tour has been seen, so it only runs on a first launch. */
     var onboarded: Boolean
         get() = sp.getBoolean(KEY_ONBOARDED, false)
@@ -62,5 +71,6 @@ class Prefs(context: Context) {
         private const val KEY_REMINDER_HOUR = "reminder_hour"
         private const val KEY_REMINDER_MINUTE = "reminder_minute"
         private const val KEY_ONBOARDED = "onboarded"
+        private const val KEY_LAUNCHING = "launch_in_progress"
     }
 }

@@ -426,4 +426,9 @@
     <string name="privacy_p6">אפשר למחוק את החשבון בכל רגע דרך ההגדרות. הפעולה מוחקת את העותק השמור ואת החשבון עצמו. הספרים שבמכשיר נשארים שלכם.</string>
     <string name="privacy_h7">דוחות קריסה</string>
     <string name="privacy_p7">אם האפליקציה קורסת נשמר דוח על המכשיר בלבד. הוא נשלח רק אם אתם בוחרים להעתיק ולשלוח אותו.</string>
+
+    <!-- safe mode, after a crash on the way up -->
+    <string name="safe_mode_title">משהו נפל בהפעלה</string>
+    <string name="safe_mode_hint">האפליקציה לא הצליחה להיפתח בפעם הקודמת. הנה מה שקרה. אפשר להעתיק ולשלוח לנו, ואז להמשיך.</string>
+    <string name="safe_mode_continue">להמשיך לאפליקציה</string>
 </resources>

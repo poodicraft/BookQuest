@@ -18,8 +18,8 @@ android {
         applicationId = "com.poodicraft.bookquest"
         minSdk = 24
         targetSdk = 34
-        versionCode = 11
-        versionName = "2.0"
+        versionCode = 12
+        versionName = "2.1"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -91,9 +91,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
     implementation("androidx.documentfile:documentfile:1.0.1")
-    // Draws the launch screen before any of our code runs, so tapping the icon
-    // does not open on a blank rectangle.
-    implementation("androidx.core:core-splashscreen:1.0.1")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     implementation(composeBom)

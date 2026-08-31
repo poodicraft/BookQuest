@@ -48,8 +48,6 @@ import com.poodicraft.bookquest.data.AccountState
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.poodicraft.bookquest.data.Classroom
-import android.app.Activity
-import android.content.ContextWrapper
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.poodicraft.bookquest.data.CloudSync
 import com.poodicraft.bookquest.data.LibraryRepository
@@ -824,14 +822,4 @@ private fun DeleteAccountDialog(
             }
         }
     )
-}
-
-/** Unwraps whatever Compose handed us until the Activity underneath turns up. */
-private fun Context.findActivity(): Activity? {
-    var current: Context? = this
-    while (current is ContextWrapper) {
-        if (current is Activity) return current
-        current = current.baseContext
-    }
-    return null
 }

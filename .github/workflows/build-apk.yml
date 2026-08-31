@@ -41,6 +41,12 @@ jobs:
       - name: Check the string resources
         run: python3 tools/check_strings.py
 
+      # Whole-project mistakes no single file looks wrong for: two files in one
+      # package declaring the same thing, and R.string keys with nothing behind
+      # them. Seconds here instead of four minutes into a Gradle build.
+      - name: Check the Kotlin sources
+        run: python3 tools/check_kotlin.py
+
       - name: Check the Gradle wrapper
         timeout-minutes: 10
         run: ./gradlew --no-daemon --console=plain --version

@@ -30,13 +30,21 @@ layout between right-to-left and left-to-right with the language.
 
 ## Versioning
 
-`versionName` / `versionCode` in `app/build.gradle.kts` are bumped on every
-build that goes out, and Settings → About shows the running version, so you can
-always tell which build is on the phone.
+The two numbers move for different reasons.
+
+**`versionName`** is the one people see, in the app details and under
+Settings → About. It moves only when the app gains something. A build that
+only repairs a build already released keeps the name it is repairing — it is
+the same version, fixed, not a new one.
+
+**`versionCode`** goes up on every single build that leaves here, fix or not,
+because Android refuses to install an APK over one with a higher code. Nobody
+ever sees it. That is why the table below can list one name against several
+codes.
 
 | Version | What changed |
 | --- | --- |
-| 2.2 (13) | Fix "LocalLifecycleOwner not present": the lifecycle library and Compose UI now agree on which one to read |
+| 2.1 (13) | Fix "LocalLifecycleOwner not present" on start up: the lifecycle library and Compose UI now agree on which one to read |
 | 2.1 (12) | Notifications settings for everyone, asked once on a first run; no more teacher-or-student flash at launch; deleting an account now proves who you are first |
 | 2.0 (11) | Launch screen, daily reading reminder, offline banner, export and import, About with privacy policy and licences, delete your account, crash reports |
 | 1.9 (10) | Remove a class with a confirmation, a full profile editor with picture and bio, teacher tips |

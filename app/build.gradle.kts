@@ -18,8 +18,15 @@ android {
         applicationId = "com.poodicraft.bookquest"
         minSdk = 24
         targetSdk = 34
+        // versionName is what people see in the app details, and it only moves
+        // when the app gains something. A fix to a build that has already gone
+        // out keeps the same name — it is the same version, repaired.
+        //
+        // versionCode is the opposite: Android refuses to install over a higher
+        // one, so it goes up on every build that leaves here, fix or not. It is
+        // never shown to anyone.
         versionCode = 13
-        versionName = "2.2"
+        versionName = "2.1"
         vectorDrawables {
             useSupportLibrary = true
         }
